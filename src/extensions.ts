@@ -127,20 +127,24 @@ const FulfillmentRequestSchema = z
   .object({
     methods: z
       .array(
-        z.object({
-          id: z.string(),
-          type: z.enum(["shipping", "pickup"]),
-          line_item_ids: z.array(z.string()),
-          selected_destination_id: z.string().nullable().optional(),
-          groups: z
-            .array(
-              z.object({
-                id: z.string(),
-                selected_option_id: z.string().nullable().optional(),
-              }).passthrough(),
-            )
-            .optional(),
-        }).passthrough(),
+        z
+          .object({
+            id: z.string(),
+            type: z.enum(["shipping", "pickup"]),
+            line_item_ids: z.array(z.string()),
+            selected_destination_id: z.string().nullable().optional(),
+            groups: z
+              .array(
+                z
+                  .object({
+                    id: z.string(),
+                    selected_option_id: z.string().nullable().optional(),
+                  })
+                  .passthrough()
+              )
+              .optional(),
+          })
+          .passthrough()
       )
       .optional(),
   })
@@ -184,16 +188,18 @@ const Ap2ResponseSchema = z
 export const CheckoutCreateRequestSchema = z.object({
   line_items: z
     .array(
-      z.object({
-        item: z
-          .object({
-            id: z.string(),
-            title: z.string().optional(),
-            price: z.number().int().optional(),
-          })
-          .passthrough(),
-        quantity: z.number().int().gte(1),
-      }).passthrough(),
+      z
+        .object({
+          item: z
+            .object({
+              id: z.string(),
+              title: z.string().optional(),
+              price: z.number().int().optional(),
+            })
+            .passthrough(),
+          quantity: z.number().int().gte(1),
+        })
+        .passthrough()
     )
     .min(1),
   buyer: BuyerSchema.optional(),

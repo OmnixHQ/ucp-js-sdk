@@ -1,0 +1,17 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "@omnixhq/ucp-js-sdk",
+      "include-component-in-tag": false,
+      "changelog-sections": [
+        { "type": "feat", "section": "Features" },
+        { "type": "fix", "section": "Bug Fixes" },
+        { "type": "refactor", "section": "Code Quality" },
+        { "type": "docs", "section": "Documentation" },
+        { "type": "chore", "section": "Maintenance" },
+        { "type": "perf", "section": "Performance" }
+      ]
+    }
+  }
+}
