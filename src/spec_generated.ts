@@ -1072,8 +1072,8 @@ export type FulfillmentGroupResponse = z.infer<
 >;
 
 export const UcpClassSchema = z.object({
-  capabilities: z.array(CapabilityDiscoverySchema),
-  services: z.record(z.string(), UcpServiceSchema),
+  capabilities: z.record(z.string(), z.array(CapabilityDiscoverySchema)),
+  services: z.record(z.string(), z.array(UcpServiceSchema)),
   version: z.string(),
 });
 export type UcpClass = z.infer<typeof UcpClassSchema>;
