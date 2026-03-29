@@ -146,7 +146,8 @@ async function generate() {
         noImport: true,
         zodVersion: 3,
       });
-      lines.push(zod, '');
+      // json-schema-to-zod emits `const X = ...` — prefix with export
+      lines.push(zod.replace(/^const /, 'export const '), '');
       console.log(`  OK    ${name}`);
     } catch (err) {
       console.error(`  ERROR ${name}: ${err.message}`);
