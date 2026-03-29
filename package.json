@@ -1,7 +1,7 @@
 {
-  "name": "@ucp-js/sdk",
+  "name": "@omnixhq/ucp-js-sdk",
   "version": "0.1.0",
-  "description": "UCP SDK for JavaScript",
+  "description": "UCP spec types and Zod schemas",
   "license": "Apache-2.0",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -33,11 +33,14 @@
     "typescript": "^5.4.5"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Universal-Commerce-Protocol/js-sdk"
-  }
+    "url": "git+https://github.com/OmnixHQ/ucp-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OmnixHQ/ucp-js-sdk/issues"
+  },
+  "homepage": "https://github.com/OmnixHQ/ucp-js-sdk#readme"
 }
