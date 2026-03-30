@@ -6,6 +6,7 @@ import {
   CheckoutCompleteRequestSchema,
   CheckoutSchema,
   CheckoutUpdateRequestSchema,
+  FulfillmentMethodSchema,
   FulfillmentSchema,
   ItemSchema,
   LineItemSchema,
@@ -32,17 +33,22 @@ export type LineItemResponse = z.infer<typeof LineItemResponseSchema>;
 export const FulfillmentResponseSchema = FulfillmentSchema;
 export type FulfillmentResponse = z.infer<typeof FulfillmentResponseSchema>;
 
+export const FulfillmentMethodResponseSchema = FulfillmentMethodSchema;
+export type FulfillmentMethodResponse = z.infer<
+  typeof FulfillmentMethodResponseSchema
+>;
+
 // ---------------------------------------------------------------------------
 // Checkout status
 // ---------------------------------------------------------------------------
 
 export const CheckoutResponseStatusSchema = z.enum([
-  "success",
-  "error",
+  "incomplete",
   "requires_escalation",
-  "requires_buyer_input",
-  "requires_buyer_review",
-  "pending",
+  "ready_for_complete",
+  "complete_in_progress",
+  "completed",
+  "canceled",
 ]);
 export type CheckoutResponseStatus = z.infer<
   typeof CheckoutResponseStatusSchema
@@ -63,7 +69,7 @@ export type ExtendedPaymentCredential = z.infer<
 export const PaymentHandlerResponseSchema = z
   .object({
     id: z.string(),
-    type: z.string(),
+    type: z.string().optional(),
     display_name: z.string().optional(),
     instrument_types: z.array(z.string()).optional(),
   })
@@ -227,5 +233,6 @@ export type ExtendedCheckoutUpdateRequest = z.infer<
 // ---------------------------------------------------------------------------
 
 export { OrderSchema };
+export type Order = z.infer<typeof OrderSchema>;
 export const OrderUpdateSchema = OrderSchema;
 export type OrderUpdate = z.infer<typeof OrderUpdateSchema>;
