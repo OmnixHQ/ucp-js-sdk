@@ -15,6 +15,8 @@ import {
   PaymentInstrumentSchema,
   PaymentSchema,
   TotalSchema,
+  UcpEntitySchema,
+  PaymentHandlerResponseSchema as GeneratedPaymentHandlerResponseSchema,
 } from "./spec_generated";
 
 // ---------------------------------------------------------------------------
@@ -66,17 +68,8 @@ export type ExtendedPaymentCredential = z.infer<
   typeof ExtendedPaymentCredentialSchema
 >;
 
-export const PaymentHandlerResponseSchema = z
-  .object({
-    id: z.string(),
-    type: z.string().optional(),
-    display_name: z.string().optional(),
-    instrument_types: z.array(z.string()).optional(),
-  })
-  .passthrough();
-export type PaymentHandlerResponse = z.infer<
-  typeof PaymentHandlerResponseSchema
->;
+// Re-export the generated spec-based schema
+export { GeneratedPaymentHandlerResponseSchema as PaymentHandlerResponseSchema };
 
 export const PaymentResponseSchema = PaymentSchema.passthrough();
 export type PaymentResponse = z.infer<typeof PaymentResponseSchema>;
@@ -93,22 +86,12 @@ export type PaymentInstrumentResponse = z.infer<
 // generation. See https://github.com/Universal-Commerce-Protocol/js-sdk/issues/19
 // ---------------------------------------------------------------------------
 
-const UcpEntitySchema = z
-  .object({
-    version: z.string(),
-    spec: z.string().url().optional(),
-    schema: z.string().url().optional(),
-    id: z.string().optional(),
-    config: z.record(z.any()).optional(),
-  })
-  .passthrough();
-
 export const UcpDiscoveryProfileSchema = z.object({
   ucp: z.object({
     version: z.string(),
     capabilities: z.record(z.string(), z.array(UcpEntitySchema)).optional(),
     services: z.record(z.string(), z.array(UcpEntitySchema)).optional(),
-    payment_handlers: z.array(PaymentHandlerResponseSchema).optional(),
+    payment_handlers: z.array(GeneratedPaymentHandlerResponseSchema).optional(),
   }),
 });
 export type UcpDiscoveryProfile = z.infer<typeof UcpDiscoveryProfileSchema>;
@@ -183,11 +166,6 @@ export {
   CheckoutUpdateRequestSchema,
   CheckoutCompleteRequestSchema,
 };
-export type CheckoutCreateRequest = z.infer<typeof CheckoutCreateRequestSchema>;
-export type CheckoutUpdateRequest = z.infer<typeof CheckoutUpdateRequestSchema>;
-export type CheckoutCompleteRequest = z.infer<
-  typeof CheckoutCompleteRequestSchema
->;
 
 // ---------------------------------------------------------------------------
 // Checkout response schemas
@@ -233,6 +211,5 @@ export type ExtendedCheckoutUpdateRequest = z.infer<
 // ---------------------------------------------------------------------------
 
 export { OrderSchema };
-export type Order = z.infer<typeof OrderSchema>;
 export const OrderUpdateSchema = OrderSchema;
 export type OrderUpdate = z.infer<typeof OrderUpdateSchema>;
