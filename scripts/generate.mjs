@@ -287,12 +287,9 @@ function normalizeSchema(schema, visited = new WeakSet()) {
     }
   }
 
-  // Replace additionalProperties: true with nothing (it's the default)
-  // so json-schema-to-zod doesn't generate .catchall(z.any())
-  if (result.additionalProperties === true) {
-    const { additionalProperties: _, ...rest } = result;
-    result = rest;
-  }
+  // additionalProperties: true → json-schema-to-zod emits .catchall(z.any())
+  // which postProcessZodCode converts to .passthrough(). This preserves
+  // extension data (fulfillment, discounts, etc.) that the spec allows.
 
   // Recurse into subschemas
   if (result.properties) {
