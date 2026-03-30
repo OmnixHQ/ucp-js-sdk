@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.1](https://github.com/OmnixHQ/ucp-js-sdk/compare/v1.0.0...v1.0.1) (2026-03-30)
+
+
+### Documentation
+
+* add badges, CONTRIBUTING.md, and fix contributing link ([#13](https://github.com/OmnixHQ/ucp-js-sdk/issues/13)) ([0971810](https://github.com/OmnixHQ/ucp-js-sdk/commit/0971810a8b6ca570be65c6558dc13c40cebfe7af))
+
+
+### Maintenance
+
+* exclude CHANGELOG.md from prettier (managed by release-please) ([b1f594d](https://github.com/OmnixHQ/ucp-js-sdk/commit/b1f594db5c9ab136f1db80581fb36e431005023b))
+* format CHANGELOG.md for prettier check ([b09c9a5](https://github.com/OmnixHQ/ucp-js-sdk/commit/b09c9a5eeca2e80da8a05e27d439c0e4abfc555a))
+
 ## [1.0.0](https://github.com/OmnixHQ/ucp-js-sdk/compare/v0.1.0...v1.0.0) (2026-03-30)
 
 ### ⚠ BREAKING CHANGES
