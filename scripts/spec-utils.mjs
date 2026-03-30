@@ -261,6 +261,14 @@ export function discoverEnums(rawSchema, schemaBaseName) {
 
   function collect(obj, pathPrefix) {
     if (!obj || typeof obj !== "object") return;
+
+    // Traverse allOf branches to find properties with enums
+    if (Array.isArray(obj.allOf)) {
+      for (const branch of obj.allOf) {
+        collect(branch, pathPrefix);
+      }
+    }
+
     const props = obj.properties;
     if (!props) return;
 

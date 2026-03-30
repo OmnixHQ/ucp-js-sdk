@@ -26,12 +26,11 @@ docs/
 ### Two-file pattern
 
 - **`spec_generated.ts`** — never touch by hand. Always regenerate with `npm run generate`.
-- **`extensions.ts`** — hand-authored additions on top of the generated base:
+- **`extensions.ts`** — spec-only aliases and re-exports (no hand-authored schemas):
   - Stable aliases consumers depend on (`FulfillmentResponseSchema`, `ItemResponseSchema`, etc.)
   - `UcpDiscoveryProfileSchema` (alias for generated `ProfileSchemaBaseSchema`)
   - `UcpDiscoveryPlatformProfileSchema`, `UcpDiscoveryBusinessProfileSchema`, `UcpSigningKeySchema`
   - `CheckoutResponseStatusSchema` (alias for generated `CheckoutStatusEnumSchema`)
-  - `ExtendedCheckout*` schemas that compose generated + platform-specific fields
   - `PaymentHandlerResponseSchema` (re-exported from generated; hand-authored alias for stability)
 
 ## Git Workflow
@@ -146,10 +145,10 @@ Comments must explain WHY, not WHAT.
 ### What's done
 
 - Full spec migration to UCP `v2026-01-23` with Draft 2020-12 generator
-- `scripts/generate.mjs` — downloads spec tarball + emits 98 schemas (46 top-level +
+- `scripts/generate.mjs` — downloads spec tarball + emits 100 schemas (46 top-level +
   39 per-`$def` exports + 7 request variants from `ucp_request` annotations +
-  13 inline enum exports)
-- `scripts/verify-schemas.mjs` — drift detection (expected: 98 exports), runs in CI
+  15 inline enum exports)
+- `scripts/verify-schemas.mjs` — drift detection (expected: 100 exports), runs in CI
 - `scripts/spec-utils.mjs` — shared utilities (`--release`, `--branch`, `--commit`,
   local path modes)
 - `tsdown` dual ESM/CJS build — passes all `attw` resolution modes
