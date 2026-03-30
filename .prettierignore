@@ -1,3 +1,4 @@
 dist/
 node_modules/
 src/spec_generated.ts
+CHANGELOG.md
