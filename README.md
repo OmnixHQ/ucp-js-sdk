@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <b>Official JavaScript library for the Universal Commerce Protocol (UCP).</b>
+  <b>JavaScript library for the Universal Commerce Protocol (UCP).</b>
 </p>
 
 ## Overview
@@ -34,7 +34,7 @@ build UCP-compliant applications in JavaScript and TypeScript.
 To install the SDK in your project, run:
 
 ```bash
-npm install @ucp-js/sdk
+npm install @omnixhq/ucp-js-sdk
 ```
 
 ## Development
@@ -43,25 +43,34 @@ npm install @ucp-js/sdk
 
 This project uses `npm` for package management and `typescript` for building.
 
-### Generating Models
+### Generating schemas
 
-The models are automatically generated from the JSON schemas in the
-[UCP Specification](https://ucp.dev).
-
-To regenerate the models, you first need a local copy of the
-[UCP specification](https://github.com/Universal-Commerce-Protocol/ucp). If you
-don't have one, you can clone it via:
+`src/spec_generated.ts` is auto-generated from the UCP spec. The generator
+downloads the spec tarball directly — no local clone required:
 
 ```bash
-git clone https://github.com/Universal-Commerce-Protocol/ucp.git
+npm run generate                          # default release (v2026-01-23)
+npm run generate -- --release v2026-01-24 # specific release tag
+npm run generate -- --branch main         # latest commit on a branch
+npm run generate -- --commit abc1234      # exact commit SHA
+npm run generate -- /path/to/ucp/source   # local spec clone
 ```
 
-Then, run `npm run generate` pointing to the `spec` folder of the cloned
-repository, e.g.:
+### Verifying schema coverage
+
+Check that `spec_generated.ts` exports exactly the schemas present in the spec —
+no missing, no undocumented extras:
 
 ```bash
-npm run generate -- ucp/spec
+npm run verify:schemas                          # default release
+npm run verify:schemas -- --release v2026-01-24 # specific release
+npm run verify:schemas -- --branch main         # latest on a branch
+npm run verify:schemas -- /path/to/ucp/source   # local clone
 ```
+
+This runs automatically in CI before every build. See
+[docs/schema-verification.md](docs/schema-verification.md) for the full
+reference — output format, upgrade workflow, and skipped schemas.
 
 ### Building
 
