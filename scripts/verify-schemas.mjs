@@ -34,10 +34,39 @@ const GENERATED_FILE = path.resolve(__dirname, "../src/spec_generated.ts");
 // Build the full set of expected export names
 // ---------------------------------------------------------------------------
 
+/**
+ * $def names to skip — same logic as generate.mjs
+ */
+function shouldSkipDef(defName) {
+  if (defName.includes(".")) return true;
+  if (defName === "checkout") return true;
+  if (defName === "cart") return true;
+  return false;
+}
+
+function deriveDefExportName(parentBaseName, defName) {
+  const cleanName = defName.replace(/_schema$/, "");
+  return `${parentBaseName}${toPascalCase(cleanName)}Schema`;
+}
+
+function isDefsOnlySchema(raw) {
+  return raw.$defs && !raw.type && !raw.properties;
+}
+
 function buildExpectedNames(specDir) {
   const names = new Set();
 
   for (const { name, raw } of discoverBaseSchemas(specDir)) {
+    // $defs-only schemas produce per-$def exports, not a single top-level
+    if (isDefsOnlySchema(raw)) {
+      const baseName = name.replace(/Schema$/, "");
+      for (const defName of Object.keys(raw.$defs || {})) {
+        if (shouldSkipDef(defName)) continue;
+        names.add(deriveDefExportName(baseName, defName));
+      }
+      continue;
+    }
+
     names.add(name);
 
     // Add request variant names derived from ucp_request annotations
