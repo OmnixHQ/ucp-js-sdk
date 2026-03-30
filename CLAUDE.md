@@ -31,7 +31,7 @@ docs/
   - `UcpDiscoveryProfileSchema` (hand-authored: profile_schema.json has broken $refs)
   - `CheckoutResponseStatusSchema` (hand-authored: not generated, comes from checkout.json enum)
   - `ExtendedCheckout*` schemas that compose generated + platform-specific fields
-  - `PaymentHandlerResponseSchema` (hand-authored: extensible, spec only defines $defs)
+  - `PaymentHandlerResponseSchema` (re-exported from generated; hand-authored alias for stability)
 
 ## Git Workflow
 
@@ -145,39 +145,21 @@ Comments must explain WHY, not WHAT.
 ### What's done
 
 - Full spec migration to UCP `v2026-01-23` with Draft 2020-12 generator
-- `scripts/generate.mjs` — downloads spec tarball + emits all 54 schemas including
-  7 request variants from `ucp_request` annotations
-- `scripts/verify-schemas.mjs` — drift detection, runs in CI
-- `scripts/spec-utils.mjs` — shared utilities (both `--release`, `--branch`, `--commit`,
+- `scripts/generate.mjs` — downloads spec tarball + emits 81 schemas (46 top-level +
+  35 per-`$def` exports + 7 request variants from `ucp_request` annotations)
+- `scripts/verify-schemas.mjs` — drift detection (expected: 81 exports), runs in CI
+- `scripts/spec-utils.mjs` — shared utilities (`--release`, `--branch`, `--commit`,
   local path modes)
 - `tsdown` dual ESM/CJS build — passes all `attw` resolution modes
 - CI workflow (typecheck → lint → format:check → verify:schemas → build → check:exports
   → check:publish)
 - Release workflow (release-please + npm publish with provenance)
 - `docs/schema-verification.md` — full developer guide
-
-### Known z.any() schemas (all intentional)
-
-These 8 top-level schemas are `z.any()` because their spec files only contain `$defs`
-(no top-level `type` or `properties`). The `$defs` are inlined by the generator wherever
-referenced:
-
-| Schema                       | Spec file                             | Why z.any()                                         |
-| ---------------------------- | ------------------------------------- | --------------------------------------------------- |
-| `CapabilitySchema`           | `capability.json`                     | definitions-only, extensible by design              |
-| `PaymentHandlerSchema`       | `payment_handler.json`                | definitions-only, extensible by design              |
-| `ServiceSchema`              | `service.json`                        | definitions-only, extensible by design              |
-| `UcpSchema`                  | `ucp.json`                            | definitions-only, context-sensitive required fields |
-| `Ap2MandateSchema`           | `shopping/ap2_mandate.json`           | definitions-only extension pattern                  |
-| `BuyerConsentSchema`         | `shopping/buyer_consent.json`         | definitions-only extension pattern                  |
-| `DiscountSchema`             | `shopping/discount.json`              | definitions-only extension pattern                  |
-| `FulfillmentExtensionSchema` | `shopping/fulfillment_extension.json` | definitions-only extension pattern                  |
+- **Zero `z.any()`** — all `$defs`-only spec files are now extracted as individual named
+  exports (e.g. `UcpEntitySchema`, `PaymentHandlerResponseSchema`, `DiscountAllocationSchema`)
 
 ### Open work
 
-- **PR #6** — docs update (README + schema-verification guide) — ready to merge
 - **NPM_TOKEN** not yet set in repo secrets → npm publish not yet wired up
 - **ucp-client migration** — waiting until SDK is published to npm before switching
   `@ucp-js/sdk` → `@omnixhq/ucp-js-sdk` in ucp-client
-- **Spec compliance audit** — no critical gaps found; all medium issues mitigated by
-  extensions.ts
