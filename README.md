@@ -37,6 +37,24 @@ To install the SDK in your project, run:
 npm install @omnixhq/ucp-js-sdk
 ```
 
+## Usage
+
+The SDK provides Zod schemas and TypeScript types for every UCP entity. Use schemas
+to validate data at runtime and get full type safety throughout your application:
+
+```typescript
+import { ExtendedCheckoutCreateRequestSchema } from "@omnixhq/ucp-js-sdk";
+
+const result = ExtendedCheckoutCreateRequestSchema.safeParse(req.body);
+if (!result.success) {
+  return res.status(400).json({ error: result.error.flatten() });
+}
+// result.data is fully typed
+```
+
+See [docs/examples.md](docs/examples.md) for more examples covering checkout
+validation, payment handlers, discovery profiles, order webhooks, and fulfillment.
+
 ## Development
 
 ### Prerequisites
