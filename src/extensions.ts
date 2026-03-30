@@ -5,6 +5,7 @@ import {
   CheckoutCreateRequestSchema,
   CheckoutCompleteRequestSchema,
   CheckoutSchema,
+  CheckoutStatusEnumSchema,
   CheckoutUpdateRequestSchema,
   FulfillmentMethodSchema,
   FulfillmentSchema,
@@ -44,17 +45,10 @@ export type FulfillmentMethodResponse = z.infer<
 >;
 
 // ---------------------------------------------------------------------------
-// Checkout status
+// Checkout status — alias for the generated enum
 // ---------------------------------------------------------------------------
 
-export const CheckoutResponseStatusSchema = z.enum([
-  "incomplete",
-  "requires_escalation",
-  "ready_for_complete",
-  "complete_in_progress",
-  "completed",
-  "canceled",
-]);
+export const CheckoutResponseStatusSchema = CheckoutStatusEnumSchema;
 export type CheckoutResponseStatus = z.infer<
   typeof CheckoutResponseStatusSchema
 >;

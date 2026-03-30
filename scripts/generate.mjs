@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import {
   buildRequestJson,
   discoverBaseSchemas,
+  discoverEnums,
   hasUcpRequestAnnotations,
   parseArgs,
   REQUEST_OPERATIONS,
@@ -578,6 +579,25 @@ async function generate() {
     } catch (err) {
       console.error(`  ERROR ${name}: ${err.message}`);
       errors++;
+    }
+  }
+
+  // --- Inline enum extraction ---
+  console.log("\nExtracting inline enums...\n");
+  for (const { name, raw } of baseSchemas) {
+    const baseName = name.replace(/Schema$/, "");
+    const enums = discoverEnums(raw, baseName);
+    for (const { exportName, values, description } of enums) {
+      const valuesLiteral = values.map((v) => JSON.stringify(v)).join(",");
+      const descChain = description
+        ? `.describe(${JSON.stringify(description)})`
+        : "";
+      lines.push(
+        `export const ${exportName} = z.enum([${valuesLiteral}])${descChain};`
+      );
+      const typeName = exportName.replace(/Schema$/, "");
+      lines.push(`export type ${typeName} = z.infer<typeof ${exportName}>;`, "");
+      console.log(`  OK    ${exportName} (enum from ${name})`);
     }
   }
 

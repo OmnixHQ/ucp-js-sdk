@@ -244,6 +244,64 @@ export function hasUcpRequestAnnotations(schema) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Inline enum extraction
+// ---------------------------------------------------------------------------
+
+/**
+ * Discovers inline string enums from schema properties and $defs.
+ * Returns [{ exportName, values, description }] for each unique enum found.
+ *
+ * Naming: {SchemaBaseName}{PropertyPascalCase}EnumSchema
+ * E.g. checkout.json → status → CheckoutStatusEnumSchema
+ */
+export function discoverEnums(rawSchema, schemaBaseName) {
+  const results = [];
+  const seen = new Set();
+
+  function collect(obj, pathPrefix) {
+    if (!obj || typeof obj !== "object") return;
+    const props = obj.properties;
+    if (!props) return;
+
+    for (const [propName, propSchema] of Object.entries(props)) {
+      if (typeof propSchema !== "object" || propSchema === null) continue;
+      if (
+        propSchema.type === "string" &&
+        Array.isArray(propSchema.enum) &&
+        propSchema.enum.length > 0
+      ) {
+        const exportName = `${pathPrefix}${toPascalCase(propName)}EnumSchema`;
+        if (seen.has(exportName)) continue;
+        seen.add(exportName);
+        results.push({
+          exportName,
+          values: propSchema.enum,
+          description: propSchema.description,
+        });
+      }
+    }
+  }
+
+  // Top-level properties
+  collect(rawSchema, schemaBaseName);
+
+  // $defs properties
+  if (rawSchema.$defs) {
+    for (const [defName, defSchema] of Object.entries(rawSchema.$defs)) {
+      if (defName.includes(".")) continue;
+      const defBaseName = `${schemaBaseName}${toPascalCase(defName)}`;
+      collect(defSchema, defBaseName);
+    }
+  }
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// Request JSON builder
+// ---------------------------------------------------------------------------
+
 /**
  * Builds a request-specific JSON Schema for the given operation by filtering
  * and categorising properties according to their ucp_request annotations.
