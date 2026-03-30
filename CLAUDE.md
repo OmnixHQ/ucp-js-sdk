@@ -104,6 +104,7 @@ The skip list lives in `scripts/spec-utils.mjs` (`SKIP_SCHEMAS` constant).
 
 Never edit `spec_generated.ts` manually. If you see a schema issue in it, the fix goes in
 one of:
+
 1. The generator (`scripts/generate.mjs` or `scripts/spec-utils.mjs`)
 2. `extensions.ts` — add an alias or override on top of the generated base
 
@@ -135,12 +136,14 @@ Comments must explain WHY, not WHAT.
 2. Merge Release PR → npm publish fires automatically
 
 **Secrets required** (set in repo Settings → Secrets → Actions):
+
 - `NPM_TOKEN` — npm automation token for `@omnixhq` org publish
 - `GITHUB_TOKEN` — built-in, used by release-please (no manual secret needed)
 
 ## Current State (as of 2026-03-30)
 
 ### What's done
+
 - Full spec migration to UCP `v2026-01-23` with Draft 2020-12 generator
 - `scripts/generate.mjs` — downloads spec tarball + emits all 54 schemas including
   7 request variants from `ucp_request` annotations
@@ -159,18 +162,19 @@ These 8 top-level schemas are `z.any()` because their spec files only contain `$
 (no top-level `type` or `properties`). The `$defs` are inlined by the generator wherever
 referenced:
 
-| Schema | Spec file | Why z.any() |
-|--------|-----------|-------------|
-| `CapabilitySchema` | `capability.json` | definitions-only, extensible by design |
-| `PaymentHandlerSchema` | `payment_handler.json` | definitions-only, extensible by design |
-| `ServiceSchema` | `service.json` | definitions-only, extensible by design |
-| `UcpSchema` | `ucp.json` | definitions-only, context-sensitive required fields |
-| `Ap2MandateSchema` | `shopping/ap2_mandate.json` | definitions-only extension pattern |
-| `BuyerConsentSchema` | `shopping/buyer_consent.json` | definitions-only extension pattern |
-| `DiscountSchema` | `shopping/discount.json` | definitions-only extension pattern |
-| `FulfillmentExtensionSchema` | `shopping/fulfillment_extension.json` | definitions-only extension pattern |
+| Schema                       | Spec file                             | Why z.any()                                         |
+| ---------------------------- | ------------------------------------- | --------------------------------------------------- |
+| `CapabilitySchema`           | `capability.json`                     | definitions-only, extensible by design              |
+| `PaymentHandlerSchema`       | `payment_handler.json`                | definitions-only, extensible by design              |
+| `ServiceSchema`              | `service.json`                        | definitions-only, extensible by design              |
+| `UcpSchema`                  | `ucp.json`                            | definitions-only, context-sensitive required fields |
+| `Ap2MandateSchema`           | `shopping/ap2_mandate.json`           | definitions-only extension pattern                  |
+| `BuyerConsentSchema`         | `shopping/buyer_consent.json`         | definitions-only extension pattern                  |
+| `DiscountSchema`             | `shopping/discount.json`              | definitions-only extension pattern                  |
+| `FulfillmentExtensionSchema` | `shopping/fulfillment_extension.json` | definitions-only extension pattern                  |
 
 ### Open work
+
 - **PR #6** — docs update (README + schema-verification guide) — ready to merge
 - **NPM_TOKEN** not yet set in repo secrets → npm publish not yet wired up
 - **ucp-client migration** — waiting until SDK is published to npm before switching
