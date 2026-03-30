@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <b>Official JavaScript library for the Universal Commerce Protocol (UCP).</b>
+  <b>JavaScript library for the Universal Commerce Protocol (UCP).</b>
 </p>
 
 ## Overview
