@@ -30,6 +30,7 @@
     "format": "prettier --write '**/*.{ts,json,md}'",
     "format:check": "prettier --check '**/*.{ts,json,md}'",
     "generate": "node scripts/generate.mjs",
+    "verify:schemas": "node scripts/verify-schemas.mjs",
     "check:exports": "attw --pack .",
     "check:publish": "publint",
     "prepublishOnly": "npm run build && npm run check:exports && npm run check:publish"

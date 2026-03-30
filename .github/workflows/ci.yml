@@ -38,6 +38,9 @@ jobs:
       - name: Format check
         run: npm run format:check
 
+      - name: Verify schema coverage
+        run: npm run verify:schemas
+
       - name: Build
         run: npm run build
 
