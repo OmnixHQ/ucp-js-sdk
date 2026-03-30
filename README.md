@@ -22,6 +22,11 @@
   <b>JavaScript library for the Universal Commerce Protocol (UCP).</b>
 </p>
 
+[![npm version](https://img.shields.io/npm/v/@omnixhq/ucp-js-sdk.svg)](https://www.npmjs.com/package/@omnixhq/ucp-js-sdk)
+[![CI](https://github.com/OmnixHQ/ucp-js-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/OmnixHQ/ucp-js-sdk/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)](https://www.typescriptlang.org/)
+
 ## Overview
 
 This repository contains the JavaScript SDK for the
@@ -101,7 +106,7 @@ npm run build
 ## Contributing
 
 We welcome community contributions. See our
-[Contribution Guide](https://github.com/Universal-Commerce-Protocol/.github/blob/main/CONTRIBUTING.md)
+[Contribution Guide](https://github.com/OmnixHQ/ucp-js-sdk/blob/main/CONTRIBUTING.md)
 for details.
 
 ## License
