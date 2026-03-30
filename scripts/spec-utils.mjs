@@ -26,9 +26,9 @@ export const NAME_OVERRIDES = {
 };
 
 // Files to skip — hand-authored in extensions.ts due to known spec issues.
-export const SKIP_SCHEMAS = new Set([
-  "discovery/profile_schema.json", // broken relative $refs in the spec
-]);
+// (Currently empty — profile_schema.json relative $refs are now resolved by
+// the doubled-URL map in generate.mjs's buildUrlMap.)
+export const SKIP_SCHEMAS = new Set([]);
 
 // ---------------------------------------------------------------------------
 // Arg parsing

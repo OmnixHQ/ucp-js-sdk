@@ -14,7 +14,7 @@ It is a **library, not a server** — no port, no process, no Docker container.
 index.ts                  — re-exports src/extensions + src/spec_generated
 src/
   spec_generated.ts       — AUTO-GENERATED from UCP spec (never edit manually)
-  extensions.ts           — hand-authored: aliases, extensions, UcpDiscoveryProfileSchema
+  extensions.ts           — hand-authored: aliases, extensions, consumer-facing types
 scripts/
   generate.mjs            — downloads spec + generates spec_generated.ts
   verify-schemas.mjs      — detects drift between spec and spec_generated.ts
@@ -28,7 +28,8 @@ docs/
 - **`spec_generated.ts`** — never touch by hand. Always regenerate with `npm run generate`.
 - **`extensions.ts`** — hand-authored additions on top of the generated base:
   - Stable aliases consumers depend on (`FulfillmentResponseSchema`, `ItemResponseSchema`, etc.)
-  - `UcpDiscoveryProfileSchema` (hand-authored: profile_schema.json has broken $refs)
+  - `UcpDiscoveryProfileSchema` (alias for generated `ProfileSchemaBaseSchema`)
+  - `UcpDiscoveryPlatformProfileSchema`, `UcpDiscoveryBusinessProfileSchema`, `UcpSigningKeySchema`
   - `CheckoutResponseStatusSchema` (hand-authored: not generated, comes from checkout.json enum)
   - `ExtendedCheckout*` schemas that compose generated + platform-specific fields
   - `PaymentHandlerResponseSchema` (re-exported from generated; hand-authored alias for stability)
@@ -94,9 +95,9 @@ Exits 0 on match, 1 on drift. Runs automatically in CI before every build.
 
 ## Skipped Schemas
 
-`discovery/profile_schema.json` is excluded from generation (broken relative `$ref`s).
-`UcpDiscoveryProfileSchema` is hand-authored in `extensions.ts` instead.
 The skip list lives in `scripts/spec-utils.mjs` (`SKIP_SCHEMAS` constant).
+Currently empty — all spec schemas are generated, including `discovery/profile_schema.json`
+(whose relative `$ref`s are resolved by `prepareSpecDir`'s `rewriteRelativeRefs`).
 
 ## Code Rules
 
@@ -145,9 +146,9 @@ Comments must explain WHY, not WHAT.
 ### What's done
 
 - Full spec migration to UCP `v2026-01-23` with Draft 2020-12 generator
-- `scripts/generate.mjs` — downloads spec tarball + emits 81 schemas (46 top-level +
-  35 per-`$def` exports + 7 request variants from `ucp_request` annotations)
-- `scripts/verify-schemas.mjs` — drift detection (expected: 81 exports), runs in CI
+- `scripts/generate.mjs` — downloads spec tarball + emits 85 schemas (46 top-level +
+  39 per-`$def` exports + 7 request variants from `ucp_request` annotations)
+- `scripts/verify-schemas.mjs` — drift detection (expected: 85 exports), runs in CI
 - `scripts/spec-utils.mjs` — shared utilities (`--release`, `--branch`, `--commit`,
   local path modes)
 - `tsdown` dual ESM/CJS build — passes all `attw` resolution modes

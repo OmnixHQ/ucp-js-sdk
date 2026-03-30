@@ -150,15 +150,13 @@ git commit -m "chore: regenerate schemas from UCP spec v2026-01-24"
 
 ## Skipped schemas
 
-Some spec files are intentionally excluded from generation and remain
-hand-authored in `src/extensions.ts`:
-
-| File                            | Reason                                                                                                                           |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `discovery/profile_schema.json` | Contains broken relative `$ref`s that cannot be resolved by the generator. `UcpDiscoveryProfileSchema` is hand-authored instead. |
-
 The skip list lives in `scripts/spec-utils.mjs` (`SKIP_SCHEMAS` constant) and
 applies equally to both `generate` and `verify:schemas`.
+
+Currently empty — all spec schemas are generated. `discovery/profile_schema.json`
+(which uses relative cross-directory `$ref`s like `../schemas/ucp.json#/$defs/base`)
+is handled by `prepareSpecDir`'s `rewriteRelativeRefs` step, which rewrites
+relative `$ref`s to absolute `$id` URLs before `$RefParser` processes them.
 
 ---
 

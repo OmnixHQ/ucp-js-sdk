@@ -14,8 +14,11 @@ import {
   PaymentCredentialSchema as GeneratedPaymentCredentialSchema,
   PaymentInstrumentSchema,
   PaymentSchema,
+  ProfileSchemaBaseSchema,
+  ProfileSchemaBusinessProfileSchema,
+  ProfileSchemaPlatformProfileSchema,
+  ProfileSchemaSigningKeySchema,
   TotalSchema,
-  UcpEntitySchema,
   PaymentHandlerResponseSchema as GeneratedPaymentHandlerResponseSchema,
 } from "./spec_generated";
 
@@ -81,20 +84,26 @@ export type PaymentInstrumentResponse = z.infer<
 >;
 
 // ---------------------------------------------------------------------------
-// Discovery profile
-// Hand-authored: profile_schema.json has broken relative $refs that prevent
-// generation. See https://github.com/Universal-Commerce-Protocol/js-sdk/issues/19
+// Discovery profile aliases — stable names for the generated profile schemas
 // ---------------------------------------------------------------------------
 
-export const UcpDiscoveryProfileSchema = z.object({
-  ucp: z.object({
-    version: z.string(),
-    capabilities: z.record(z.string(), z.array(UcpEntitySchema)).optional(),
-    services: z.record(z.string(), z.array(UcpEntitySchema)).optional(),
-    payment_handlers: z.array(GeneratedPaymentHandlerResponseSchema).optional(),
-  }),
-});
+export const UcpDiscoveryProfileSchema = ProfileSchemaBaseSchema;
 export type UcpDiscoveryProfile = z.infer<typeof UcpDiscoveryProfileSchema>;
+
+export const UcpDiscoveryPlatformProfileSchema =
+  ProfileSchemaPlatformProfileSchema;
+export type UcpDiscoveryPlatformProfile = z.infer<
+  typeof UcpDiscoveryPlatformProfileSchema
+>;
+
+export const UcpDiscoveryBusinessProfileSchema =
+  ProfileSchemaBusinessProfileSchema;
+export type UcpDiscoveryBusinessProfile = z.infer<
+  typeof UcpDiscoveryBusinessProfileSchema
+>;
+
+export const UcpSigningKeySchema = ProfileSchemaSigningKeySchema;
+export type UcpSigningKey = z.infer<typeof UcpSigningKeySchema>;
 
 // ---------------------------------------------------------------------------
 // Platform config (ucp-client–specific, not in the UCP spec)
