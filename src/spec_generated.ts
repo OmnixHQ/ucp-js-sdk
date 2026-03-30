@@ -1,1302 +1,227 @@
-import * as z from "zod";
-
-// Key usage. Should be 'sig' for signing keys.
-
-export const UseSchema = z.enum(["enc", "sig"]);
-export type Use = z.infer<typeof UseSchema>;
-
-// The type of card number. Network tokens are preferred with fallback to FPAN.
-// See PCI Scope for more details.
-
-export const CardNumberTypeSchema = z.enum(["dpan", "fpan", "network_token"]);
-export type CardNumberType = z.infer<typeof CardNumberTypeSchema>;
-
-// A URI pointing to a schema definition (e.g., JSON Schema) used to validate
-// the structure of the instrument object.
-
-export const CardPaymentInstrumentTypeSchema = z.enum(["card"]);
-export type CardPaymentInstrumentType = z.infer<
-  typeof CardPaymentInstrumentTypeSchema
->;
-
-// Type of total categorization.
-
-export const TotalResponseTypeSchema = z.enum([
-  "discount",
-  "fee",
-  "fulfillment",
-  "items_discount",
-  "subtotal",
-  "tax",
-  "total",
-]);
-export type TotalResponseType = z.infer<typeof TotalResponseTypeSchema>;
-
-// Content format, default = plain.
-
-export const ContentTypeSchema = z.enum(["markdown", "plain"]);
-export type ContentType = z.infer<typeof ContentTypeSchema>;
-
-// Declares who resolves this error. 'recoverable': agent can fix via API.
-// 'requires_buyer_input': merchant requires information their API doesn't
-// support collecting programmatically (checkout incomplete).
-// 'requires_buyer_review': buyer must authorize before order placement due to
-// policy, regulatory, or entitlement rules (checkout complete). Errors with
-// 'requires_*' severity contribute to 'status: requires_escalation'.
-
-export const SeveritySchema = z.enum([
-  "recoverable",
-  "requires_buyer_input",
-  "requires_buyer_review",
-]);
-export type Severity = z.infer<typeof SeveritySchema>;
-
-export const MessageTypeSchema = z.enum(["error", "info", "warning"]);
-export type MessageType = z.infer<typeof MessageTypeSchema>;
-
-// Checkout state indicating the current phase and required action. See Checkout
-// Status lifecycle documentation for state transition details.
-
-export const CheckoutResponseStatusSchema = z.enum([
-  "canceled",
-  "complete_in_progress",
-  "completed",
-  "incomplete",
-  "ready_for_complete",
-  "requires_escalation",
-]);
-export type CheckoutResponseStatus = z.infer<
-  typeof CheckoutResponseStatusSchema
->;
-
-// Adjustment status.
-
-export const AdjustmentStatusSchema = z.enum([
-  "completed",
-  "failed",
-  "pending",
-]);
-export type AdjustmentStatus = z.infer<typeof AdjustmentStatusSchema>;
-
-// Delivery method type (shipping, pickup, digital).
-
-export const MethodTypeSchema = z.enum(["digital", "pickup", "shipping"]);
-export type MethodType = z.infer<typeof MethodTypeSchema>;
-
-// Derived status: fulfilled if quantity.fulfilled == quantity.total, partial if
-// quantity.fulfilled > 0, otherwise processing.
-
-export const LineItemStatusSchema = z.enum([
-  "fulfilled",
-  "partial",
-  "processing",
-]);
-export type LineItemStatus = z.infer<typeof LineItemStatusSchema>;
-
-// Fulfillment method type this availability applies to.
-//
-// Fulfillment method type.
-
-export const TypeElementSchema = z.enum(["pickup", "shipping"]);
-export type TypeElement = z.infer<typeof TypeElementSchema>;
-
-export const MessageErrorTypeSchema = z.enum(["error"]);
-export type MessageErrorType = z.infer<typeof MessageErrorTypeSchema>;
-
-export const MessageInfoTypeSchema = z.enum(["info"]);
-export type MessageInfoType = z.infer<typeof MessageInfoTypeSchema>;
-
-export const MessageWarningTypeSchema = z.enum(["warning"]);
-export type MessageWarningType = z.infer<typeof MessageWarningTypeSchema>;
-
-// Allocation method. 'each' = applied independently per item. 'across' = split
-// proportionally by value.
-
-export const MethodSchema = z.enum(["across", "each"]);
-export type Method = z.infer<typeof MethodSchema>;
-
-export const PaymentHandlerResponseSchema = z.object({
-  config: z.record(z.string(), z.any()),
-  config_schema: z.string(),
-  id: z.string(),
-  instrument_schemas: z.array(z.string()),
-  name: z.string(),
-  spec: z.string(),
-  version: z.string(),
-});
-export type PaymentHandlerResponse = z.infer<
-  typeof PaymentHandlerResponseSchema
->;
-
-export const SigningKeySchema = z.object({
-  alg: z.string().optional(),
-  crv: z.string().optional(),
-  e: z.string().optional(),
-  kid: z.string(),
-  kty: z.string(),
-  n: z.string().optional(),
-  use: UseSchema.optional(),
-  x: z.string().optional(),
-  y: z.string().optional(),
-});
-export type SigningKey = z.infer<typeof SigningKeySchema>;
-
-export const CapabilityDiscoverySchema = z.object({
-  config: z.record(z.string(), z.any()).optional(),
-  extends: z.string().optional(),
-  name: z.string(),
-  schema: z.string(),
-  spec: z.string(),
-  version: z.string(),
-});
-export type CapabilityDiscovery = z.infer<typeof CapabilityDiscoverySchema>;
-
-export const A2ASchema = z.object({
-  endpoint: z.string(),
-});
-export type A2A = z.infer<typeof A2ASchema>;
-
-export const EmbeddedSchema = z.object({
-  schema: z.string(),
-});
-export type Embedded = z.infer<typeof EmbeddedSchema>;
-
-export const McpSchema = z.object({
-  endpoint: z.string(),
-  schema: z.string(),
-});
-export type Mcp = z.infer<typeof McpSchema>;
-
-export const RestSchema = z.object({
-  endpoint: z.string(),
-  schema: z.string(),
-});
-export type Rest = z.infer<typeof RestSchema>;
-
-export const BuyerClassSchema = z.object({
-  email: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-});
-export type BuyerClass = z.infer<typeof BuyerClassSchema>;
-
-export const ItemClassSchema = z.object({
-  id: z.string(),
-});
-export type ItemClass = z.infer<typeof ItemClassSchema>;
-
-export const BillingAddressClassSchema = z.object({
-  address_country: z.string().optional(),
-  address_locality: z.string().optional(),
-  address_region: z.string().optional(),
-  extended_address: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  street_address: z.string().optional(),
-});
-export type BillingAddressClass = z.infer<typeof BillingAddressClassSchema>;
-
-export const PaymentCredentialSchema = z.object({
-  type: z.string(),
-  card_number_type: CardNumberTypeSchema.optional(),
-  cryptogram: z.string().optional(),
-  cvc: z.string().optional(),
-  eci_value: z.string().optional(),
-  expiry_month: z.number().optional(),
-  expiry_year: z.number().optional(),
-  name: z.string().optional(),
-  number: z.string().optional(),
-});
-export type PaymentCredential = z.infer<typeof PaymentCredentialSchema>;
-
-export const ItemResponseSchema = z.object({
-  id: z.string(),
-  image_url: z.string().optional(),
-  price: z.number(),
-  title: z.string(),
-});
-export type ItemResponse = z.infer<typeof ItemResponseSchema>;
-
-export const TotalResponseSchema = z.object({
-  amount: z.number(),
-  display_text: z.string().optional(),
-  type: TotalResponseTypeSchema,
-});
-export type TotalResponse = z.infer<typeof TotalResponseSchema>;
-
-export const LinkElementSchema = z.object({
-  title: z.string().optional(),
-  type: z.string(),
-  url: z.string(),
-});
-export type LinkElement = z.infer<typeof LinkElementSchema>;
-
-export const MessageElementSchema = z.object({
-  code: z.string().optional(),
-  content: z.string(),
-  content_type: ContentTypeSchema.optional(),
-  path: z.string().optional(),
-  severity: SeveritySchema.optional(),
-  type: MessageTypeSchema,
-});
-export type MessageElement = z.infer<typeof MessageElementSchema>;
-
-export const OrderClassSchema = z.object({
-  id: z.string(),
-  permalink_url: z.string(),
-});
-export type OrderClass = z.infer<typeof OrderClassSchema>;
-
-export const CapabilityResponseSchema = z.object({
-  config: z.record(z.string(), z.any()).optional(),
-  extends: z.string().optional(),
-  name: z.string(),
-  schema: z.string().optional(),
-  spec: z.string().optional(),
-  version: z.string(),
-});
-export type CapabilityResponse = z.infer<typeof CapabilityResponseSchema>;
-
-export const LineItemItemSchema = z.object({
-  id: z.string(),
-});
-export type LineItemItem = z.infer<typeof LineItemItemSchema>;
-
-export const AdjustmentLineItemSchema = z.object({
-  id: z.string(),
-  quantity: z.number(),
-});
-export type AdjustmentLineItem = z.infer<typeof AdjustmentLineItemSchema>;
-
-export const EventLineItemSchema = z.object({
-  id: z.string(),
-  quantity: z.number(),
-});
-export type EventLineItem = z.infer<typeof EventLineItemSchema>;
-
-export const ExpectationLineItemSchema = z.object({
-  id: z.string(),
-  quantity: z.number(),
-});
-export type ExpectationLineItem = z.infer<typeof ExpectationLineItemSchema>;
-
-export const LineItemQuantitySchema = z.object({
-  fulfilled: z.number(),
-  total: z.number(),
-});
-export type LineItemQuantity = z.infer<typeof LineItemQuantitySchema>;
-
-export const UcpOrderResponseSchema = z.object({
-  capabilities: z.array(CapabilityResponseSchema),
-  version: z.string(),
-});
-export type UcpOrderResponse = z.infer<typeof UcpOrderResponseSchema>;
-
-export const PaymentAccountInfoSchema = z.object({
-  payment_account_reference: z.string().optional(),
-});
-export type PaymentAccountInfo = z.infer<typeof PaymentAccountInfoSchema>;
-
-export const AdjustmentLineItemClassSchema = z.object({
-  id: z.string(),
-  quantity: z.number(),
-});
-export type AdjustmentLineItemClass = z.infer<
-  typeof AdjustmentLineItemClassSchema
->;
-
-export const IdentityClassSchema = z.object({
-  access_token: z.string(),
-});
-export type IdentityClass = z.infer<typeof IdentityClassSchema>;
-
-export const BuyerSchema = z.object({
-  email: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-});
-export type Buyer = z.infer<typeof BuyerSchema>;
-
-export const CardCredentialSchema = z.object({
-  card_number_type: CardNumberTypeSchema,
-  cryptogram: z.string().optional(),
-  cvc: z.string().optional(),
-  eci_value: z.string().optional(),
-  expiry_month: z.number().optional(),
-  expiry_year: z.number().optional(),
-  name: z.string().optional(),
-  number: z.string().optional(),
-  type: CardPaymentInstrumentTypeSchema,
-});
-export type CardCredential = z.infer<typeof CardCredentialSchema>;
-
-export const CardPaymentInstrumentSchema = z.object({
-  billing_address: BillingAddressClassSchema.optional(),
-  credential: PaymentCredentialSchema.optional(),
-  handler_id: z.string(),
-  id: z.string(),
-  type: CardPaymentInstrumentTypeSchema,
-  brand: z.string(),
-  expiry_month: z.number().optional(),
-  expiry_year: z.number().optional(),
-  last_digits: z.string(),
-  rich_card_art: z.string().optional(),
-  rich_text_description: z.string().optional(),
-});
-export type CardPaymentInstrument = z.infer<typeof CardPaymentInstrumentSchema>;
-
-export const ExpectationLineItemClassSchema = z.object({
-  id: z.string(),
-  quantity: z.number(),
-});
-export type ExpectationLineItemClass = z.infer<
-  typeof ExpectationLineItemClassSchema
->;
-
-export const FulfillmentDestinationRequestSchema = z.object({
-  address_country: z.string().optional(),
-  address_locality: z.string().optional(),
-  address_region: z.string().optional(),
-  extended_address: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  street_address: z.string().optional(),
-  id: z.string().optional(),
-  address: BillingAddressClassSchema.optional(),
-  name: z.string().optional(),
-});
-export type FulfillmentDestinationRequest = z.infer<
-  typeof FulfillmentDestinationRequestSchema
->;
-
-export const FulfillmentEventLineItemSchema = z.object({
-  id: z.string(),
-  quantity: z.number(),
-});
-export type FulfillmentEventLineItem = z.infer<
-  typeof FulfillmentEventLineItemSchema
->;
-
-export const FulfillmentGroupCreateRequestSchema = z.object({
-  selected_option_id: z.union([z.null(), z.string()]).optional(),
-});
-export type FulfillmentGroupCreateRequest = z.infer<
-  typeof FulfillmentGroupCreateRequestSchema
->;
-
-export const FulfillmentGroupUpdateRequestSchema = z.object({
-  id: z.string(),
-  selected_option_id: z.union([z.null(), z.string()]).optional(),
-});
-export type FulfillmentGroupUpdateRequest = z.infer<
-  typeof FulfillmentGroupUpdateRequestSchema
->;
-
-export const FulfillmentDestinationRequestElementSchema = z.object({
-  address_country: z.string().optional(),
-  address_locality: z.string().optional(),
-  address_region: z.string().optional(),
-  extended_address: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  street_address: z.string().optional(),
-  id: z.string().optional(),
-  address: BillingAddressClassSchema.optional(),
-  name: z.string().optional(),
-});
-export type FulfillmentDestinationRequestElement = z.infer<
-  typeof FulfillmentDestinationRequestElementSchema
->;
-
-export const GroupElementSchema = z.object({
-  selected_option_id: z.union([z.null(), z.string()]).optional(),
-});
-export type GroupElement = z.infer<typeof GroupElementSchema>;
-
-export const GroupClassSchema = z.object({
-  id: z.string(),
-  selected_option_id: z.union([z.null(), z.string()]).optional(),
-});
-export type GroupClass = z.infer<typeof GroupClassSchema>;
-
-export const ItemCreateRequestSchema = z.object({
-  id: z.string(),
-});
-export type ItemCreateRequest = z.infer<typeof ItemCreateRequestSchema>;
-
-export const ItemUpdateRequestSchema = z.object({
-  id: z.string(),
-});
-export type ItemUpdateRequest = z.infer<typeof ItemUpdateRequestSchema>;
-
-export const LineItemCreateRequestSchema = z.object({
-  item: ItemClassSchema,
-  quantity: z.number(),
-});
-export type LineItemCreateRequest = z.infer<typeof LineItemCreateRequestSchema>;
-
-export const LineItemUpdateRequestSchema = z.object({
-  id: z.string().optional(),
-  item: LineItemItemSchema,
-  parent_id: z.string().optional(),
-  quantity: z.number(),
-});
-export type LineItemUpdateRequest = z.infer<typeof LineItemUpdateRequestSchema>;
-
-export const LinkSchema = z.object({
-  title: z.string().optional(),
-  type: z.string(),
-  url: z.string(),
-});
-export type Link = z.infer<typeof LinkSchema>;
-
-export const AllowsMultiDestinationSchema = z.object({
-  pickup: z.boolean().optional(),
-  shipping: z.boolean().optional(),
-});
-export type AllowsMultiDestination = z.infer<
-  typeof AllowsMultiDestinationSchema
->;
-
-export const MessageErrorSchema = z.object({
-  code: z.string(),
-  content: z.string(),
-  content_type: ContentTypeSchema.optional(),
-  path: z.string().optional(),
-  severity: SeveritySchema,
-  type: MessageErrorTypeSchema,
-});
-export type MessageError = z.infer<typeof MessageErrorSchema>;
-
-export const MessageInfoSchema = z.object({
-  code: z.string().optional(),
-  content: z.string(),
-  content_type: ContentTypeSchema.optional(),
-  path: z.string().optional(),
-  type: MessageInfoTypeSchema,
-});
-export type MessageInfo = z.infer<typeof MessageInfoSchema>;
-
-export const MessageSchema = z.object({
-  code: z.string().optional(),
-  content: z.string(),
-  content_type: ContentTypeSchema.optional(),
-  path: z.string().optional(),
-  severity: SeveritySchema.optional(),
-  type: MessageTypeSchema,
-});
-export type Message = z.infer<typeof MessageSchema>;
-
-export const MessageWarningSchema = z.object({
-  code: z.string(),
-  content: z.string(),
-  content_type: ContentTypeSchema.optional(),
-  path: z.string().optional(),
-  type: MessageWarningTypeSchema,
-});
-export type MessageWarning = z.infer<typeof MessageWarningSchema>;
-
-export const OrderConfirmationSchema = z.object({
-  id: z.string(),
-  permalink_url: z.string(),
-});
-export type OrderConfirmation = z.infer<typeof OrderConfirmationSchema>;
-
-export const OrderLineItemQuantitySchema = z.object({
-  fulfilled: z.number(),
-  total: z.number(),
-});
-export type OrderLineItemQuantity = z.infer<typeof OrderLineItemQuantitySchema>;
-
-export const PaymentIdentitySchema = z.object({
-  access_token: z.string(),
-});
-export type PaymentIdentity = z.infer<typeof PaymentIdentitySchema>;
-
-export const PaymentInstrumentBaseSchema = z.object({
-  billing_address: BillingAddressClassSchema.optional(),
-  credential: PaymentCredentialSchema.optional(),
-  handler_id: z.string(),
-  id: z.string(),
-  type: z.string(),
-});
-export type PaymentInstrumentBase = z.infer<typeof PaymentInstrumentBaseSchema>;
-
-export const PlatformFulfillmentConfigSchema = z.object({
-  supports_multi_group: z.boolean().optional(),
-});
-export type PlatformFulfillmentConfig = z.infer<
-  typeof PlatformFulfillmentConfigSchema
->;
-
-export const PostalAddressSchema = z.object({
-  address_country: z.string().optional(),
-  address_locality: z.string().optional(),
-  address_region: z.string().optional(),
-  extended_address: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  street_address: z.string().optional(),
-});
-export type PostalAddress = z.infer<typeof PostalAddressSchema>;
-
-export const RetailLocationRequestSchema = z.object({
-  address: BillingAddressClassSchema.optional(),
-  name: z.string(),
-});
-export type RetailLocationRequest = z.infer<typeof RetailLocationRequestSchema>;
-
-export const RetailLocationResponseSchema = z.object({
-  address: BillingAddressClassSchema.optional(),
-  id: z.string(),
-  name: z.string(),
-});
-export type RetailLocationResponse = z.infer<
-  typeof RetailLocationResponseSchema
->;
-
-export const ShippingDestinationRequestSchema = z.object({
-  address_country: z.string().optional(),
-  address_locality: z.string().optional(),
-  address_region: z.string().optional(),
-  extended_address: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  street_address: z.string().optional(),
-  id: z.string().optional(),
-});
-export type ShippingDestinationRequest = z.infer<
-  typeof ShippingDestinationRequestSchema
->;
-
-export const ShippingDestinationResponseSchema = z.object({
-  address_country: z.string().optional(),
-  address_locality: z.string().optional(),
-  address_region: z.string().optional(),
-  extended_address: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  street_address: z.string().optional(),
-  id: z.string(),
-});
-export type ShippingDestinationResponse = z.infer<
-  typeof ShippingDestinationResponseSchema
->;
-
-export const TokenCredentialCreateRequestSchema = z.object({
-  token: z.string(),
-  type: z.string(),
-});
-export type TokenCredentialCreateRequest = z.infer<
-  typeof TokenCredentialCreateRequestSchema
->;
-
-export const TokenCredentialResponseSchema = z.object({
-  type: z.string(),
-});
-export type TokenCredentialResponse = z.infer<
-  typeof TokenCredentialResponseSchema
->;
-
-export const TokenCredentialUpdateRequestSchema = z.object({
-  token: z.string(),
-  type: z.string(),
-});
-export type TokenCredentialUpdateRequest = z.infer<
-  typeof TokenCredentialUpdateRequestSchema
->;
-
-export const Ap2CompleteRequestObjectSchema = z.object({
-  checkout_mandate: z.string(),
-});
-export type Ap2CompleteRequestObject = z.infer<
-  typeof Ap2CompleteRequestObjectSchema
->;
-
-export const Ap2CheckoutResponseObjectSchema = z.object({
-  merchant_authorization: z.string(),
-});
-export type Ap2CheckoutResponseObject = z.infer<
-  typeof Ap2CheckoutResponseObjectSchema
->;
-
-export const PurpleConsentSchema = z.object({
-  analytics: z.boolean().optional(),
-  marketing: z.boolean().optional(),
-  preferences: z.boolean().optional(),
-  sale_of_data: z.boolean().optional(),
-});
-export type PurpleConsent = z.infer<typeof PurpleConsentSchema>;
-
-export const FluffyConsentSchema = z.object({
-  analytics: z.boolean().optional(),
-  marketing: z.boolean().optional(),
-  preferences: z.boolean().optional(),
-  sale_of_data: z.boolean().optional(),
-});
-export type FluffyConsent = z.infer<typeof FluffyConsentSchema>;
-
-export const TentacledConsentSchema = z.object({
-  analytics: z.boolean().optional(),
-  marketing: z.boolean().optional(),
-  preferences: z.boolean().optional(),
-  sale_of_data: z.boolean().optional(),
-});
-export type TentacledConsent = z.infer<typeof TentacledConsentSchema>;
-
-export const AllocationElementSchema = z.object({
-  amount: z.number(),
-  path: z.string(),
-});
-export type AllocationElement = z.infer<typeof AllocationElementSchema>;
-
-export const AllocationClassSchema = z.object({
-  amount: z.number(),
-  path: z.string(),
-});
-export type AllocationClass = z.infer<typeof AllocationClassSchema>;
-
-export const AppliedAllocationSchema = z.object({
-  amount: z.number(),
-  path: z.string(),
-});
-export type AppliedAllocation = z.infer<typeof AppliedAllocationSchema>;
-
-export const MethodElementSchema = z.object({
-  destinations: z.array(FulfillmentDestinationRequestElementSchema).optional(),
-  groups: z.array(GroupElementSchema).optional(),
-  line_item_ids: z.array(z.string()).optional(),
-  selected_destination_id: z.union([z.null(), z.string()]).optional(),
-  type: TypeElementSchema,
-});
-export type MethodElement = z.infer<typeof MethodElementSchema>;
-
-export const FulfillmentAvailableMethodResponseSchema = z.object({
-  description: z.string().optional(),
-  fulfillable_on: z.union([z.null(), z.string()]).optional(),
-  line_item_ids: z.array(z.string()),
-  type: TypeElementSchema,
-});
-export type FulfillmentAvailableMethodResponse = z.infer<
-  typeof FulfillmentAvailableMethodResponseSchema
->;
-
-export const FulfillmentDestinationResponseSchema = z.object({
-  address_country: z.string().optional(),
-  address_locality: z.string().optional(),
-  address_region: z.string().optional(),
-  extended_address: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  postal_code: z.string().optional(),
-  street_address: z.string().optional(),
-  id: z.string(),
-  address: BillingAddressClassSchema.optional(),
-  name: z.string().optional(),
-});
-export type FulfillmentDestinationResponse = z.infer<
-  typeof FulfillmentDestinationResponseSchema
->;
-
-export const FulfillmentOptionResponseSchema = z.object({
-  carrier: z.string().optional(),
-  description: z.string().optional(),
-  earliest_fulfillment_time: z.coerce.date().optional(),
-  id: z.string(),
-  latest_fulfillment_time: z.coerce.date().optional(),
-  title: z.string(),
-  totals: z.array(TotalResponseSchema),
-});
-export type FulfillmentOptionResponse = z.infer<
-  typeof FulfillmentOptionResponseSchema
->;
-
-export const PaymentSchema = z.object({
-  handlers: z.array(PaymentHandlerResponseSchema).optional(),
-});
-export type Payment = z.infer<typeof PaymentSchema>;
-
-export const UcpServiceSchema = z.object({
-  a2a: A2ASchema.optional(),
-  embedded: EmbeddedSchema.optional(),
-  mcp: McpSchema.optional(),
-  rest: RestSchema.optional(),
-  spec: z.string(),
-  version: z.string(),
-});
-export type UcpService = z.infer<typeof UcpServiceSchema>;
-
-export const LineItemElementSchema = z.object({
-  item: ItemClassSchema,
-  quantity: z.number(),
-});
-export type LineItemElement = z.infer<typeof LineItemElementSchema>;
-
-export const PaymentInstrumentSchema = z.object({
-  billing_address: BillingAddressClassSchema.optional(),
-  credential: PaymentCredentialSchema.optional(),
-  handler_id: z.string(),
-  id: z.string(),
-  type: CardPaymentInstrumentTypeSchema,
-  brand: z.string(),
-  expiry_month: z.number().optional(),
-  expiry_year: z.number().optional(),
-  last_digits: z.string(),
-  rich_card_art: z.string().optional(),
-  rich_text_description: z.string().optional(),
-});
-export type PaymentInstrument = z.infer<typeof PaymentInstrumentSchema>;
-
-export const LineItemResponseSchema = z.object({
-  id: z.string(),
-  item: ItemResponseSchema,
-  parent_id: z.string().optional(),
-  quantity: z.number(),
-  totals: z.array(TotalResponseSchema),
-});
-export type LineItemResponse = z.infer<typeof LineItemResponseSchema>;
-
-export const PaymentResponseSchema = z.object({
-  handlers: z.array(PaymentHandlerResponseSchema),
-  instruments: z.array(PaymentInstrumentSchema).optional(),
-  selected_instrument_id: z.string().optional(),
-});
-export type PaymentResponse = z.infer<typeof PaymentResponseSchema>;
-
-export const UcpCheckoutResponseSchema = z.object({
-  capabilities: z.array(CapabilityResponseSchema),
-  version: z.string(),
-});
-export type UcpCheckoutResponse = z.infer<typeof UcpCheckoutResponseSchema>;
-
-export const LineItemClassSchema = z.object({
-  id: z.string().optional(),
-  item: LineItemItemSchema,
-  parent_id: z.string().optional(),
-  quantity: z.number(),
-});
-export type LineItemClass = z.infer<typeof LineItemClassSchema>;
-
-export const CheckoutUpdateRequestPaymentSchema = z.object({
-  instruments: z.array(PaymentInstrumentSchema).optional(),
-  selected_instrument_id: z.string().optional(),
-});
-export type CheckoutUpdateRequestPayment = z.infer<
-  typeof CheckoutUpdateRequestPaymentSchema
->;
-
-export const AdjustmentElementSchema = z.object({
-  amount: z.number().optional(),
-  description: z.string().optional(),
-  id: z.string(),
-  line_items: z.array(AdjustmentLineItemSchema).optional(),
-  occurred_at: z.coerce.date(),
-  status: AdjustmentStatusSchema,
-  type: z.string(),
-});
-export type AdjustmentElement = z.infer<typeof AdjustmentElementSchema>;
-
-export const EventElementSchema = z.object({
-  carrier: z.string().optional(),
-  description: z.string().optional(),
-  id: z.string(),
-  line_items: z.array(EventLineItemSchema),
-  occurred_at: z.coerce.date(),
-  tracking_number: z.string().optional(),
-  tracking_url: z.string().optional(),
-  type: z.string(),
-});
-export type EventElement = z.infer<typeof EventElementSchema>;
-
-export const ExpectationElementSchema = z.object({
-  description: z.string().optional(),
-  destination: BillingAddressClassSchema,
-  fulfillable_on: z.string().optional(),
-  id: z.string(),
-  line_items: z.array(ExpectationLineItemSchema),
-  method_type: MethodTypeSchema,
-});
-export type ExpectationElement = z.infer<typeof ExpectationElementSchema>;
-
-export const OrderLineItemClassSchema = z.object({
-  id: z.string(),
-  item: ItemResponseSchema,
-  parent_id: z.string().optional(),
-  quantity: LineItemQuantitySchema,
-  status: LineItemStatusSchema,
-  totals: z.array(TotalResponseSchema),
-});
-export type OrderLineItemClass = z.infer<typeof OrderLineItemClassSchema>;
-
-export const PaymentCreateRequestSchema = z.object({
-  instruments: z.array(PaymentInstrumentSchema).optional(),
-  selected_instrument_id: z.string().optional(),
-});
-export type PaymentCreateRequest = z.infer<typeof PaymentCreateRequestSchema>;
-
-export const PaymentDataSchema = z.object({
-  payment_data: PaymentInstrumentSchema,
-});
-export type PaymentData = z.infer<typeof PaymentDataSchema>;
-
-export const PaymentUpdateRequestSchema = z.object({
-  instruments: z.array(PaymentInstrumentSchema).optional(),
-  selected_instrument_id: z.string().optional(),
-});
-export type PaymentUpdateRequest = z.infer<typeof PaymentUpdateRequestSchema>;
-
-export const AdjustmentSchema = z.object({
-  amount: z.number().optional(),
-  description: z.string().optional(),
-  id: z.string(),
-  line_items: z.array(AdjustmentLineItemClassSchema).optional(),
-  occurred_at: z.coerce.date(),
-  status: AdjustmentStatusSchema,
-  type: z.string(),
-});
-export type Adjustment = z.infer<typeof AdjustmentSchema>;
-
-export const BindingSchema = z.object({
-  checkout_id: z.string(),
-  identity: IdentityClassSchema.optional(),
-});
-export type Binding = z.infer<typeof BindingSchema>;
-
-export const ExpectationSchema = z.object({
-  description: z.string().optional(),
-  destination: BillingAddressClassSchema,
-  fulfillable_on: z.string().optional(),
-  id: z.string(),
-  line_items: z.array(ExpectationLineItemClassSchema),
-  method_type: MethodTypeSchema,
-});
-export type Expectation = z.infer<typeof ExpectationSchema>;
-
-export const FulfillmentEventSchema = z.object({
-  carrier: z.string().optional(),
-  description: z.string().optional(),
-  id: z.string(),
-  line_items: z.array(FulfillmentEventLineItemSchema),
-  occurred_at: z.coerce.date(),
-  tracking_number: z.string().optional(),
-  tracking_url: z.string().optional(),
-  type: z.string(),
-});
-export type FulfillmentEvent = z.infer<typeof FulfillmentEventSchema>;
-
-export const FulfillmentMethodCreateRequestSchema = z.object({
-  destinations: z.array(FulfillmentDestinationRequestElementSchema).optional(),
-  groups: z.array(GroupElementSchema).optional(),
-  line_item_ids: z.array(z.string()).optional(),
-  selected_destination_id: z.union([z.null(), z.string()]).optional(),
-  type: TypeElementSchema,
-});
-export type FulfillmentMethodCreateRequest = z.infer<
-  typeof FulfillmentMethodCreateRequestSchema
->;
-
-export const FulfillmentMethodUpdateRequestSchema = z.object({
-  destinations: z.array(FulfillmentDestinationRequestElementSchema).optional(),
-  groups: z.array(GroupClassSchema).optional(),
-  id: z.string(),
-  line_item_ids: z.array(z.string()),
-  selected_destination_id: z.union([z.null(), z.string()]).optional(),
-});
-export type FulfillmentMethodUpdateRequest = z.infer<
-  typeof FulfillmentMethodUpdateRequestSchema
->;
-
-export const MerchantFulfillmentConfigSchema = z.object({
-  allows_method_combinations: z.array(z.array(TypeElementSchema)).optional(),
-  allows_multi_destination: AllowsMultiDestinationSchema.optional(),
-});
-export type MerchantFulfillmentConfig = z.infer<
-  typeof MerchantFulfillmentConfigSchema
->;
-
-export const OrderLineItemSchema = z.object({
-  id: z.string(),
-  item: ItemResponseSchema,
-  parent_id: z.string().optional(),
-  quantity: OrderLineItemQuantitySchema,
-  status: LineItemStatusSchema,
-  totals: z.array(TotalResponseSchema),
-});
-export type OrderLineItem = z.infer<typeof OrderLineItemSchema>;
-
-export const CompleteCheckoutRequestWithAp2Schema = z.object({
-  ap2: Ap2CompleteRequestObjectSchema.optional(),
-});
-export type CompleteCheckoutRequestWithAp2 = z.infer<
-  typeof CompleteCheckoutRequestWithAp2Schema
->;
-
-export const CheckoutWithAp2MandateSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  continue_url: z.string().optional(),
-  currency: z.string(),
-  expires_at: z.coerce.date().optional(),
-  id: z.string(),
-  line_items: z.array(LineItemResponseSchema),
-  links: z.array(LinkElementSchema),
-  messages: z.array(MessageElementSchema).optional(),
-  order: OrderClassSchema.optional(),
-  payment: PaymentResponseSchema,
-  status: CheckoutResponseStatusSchema,
-  totals: z.array(TotalResponseSchema),
-  ucp: UcpCheckoutResponseSchema,
-  ap2: Ap2CheckoutResponseObjectSchema.optional(),
-});
-export type CheckoutWithAp2Mandate = z.infer<
-  typeof CheckoutWithAp2MandateSchema
->;
-
-export const BuyerWithConsentCreateRequestSchema = z.object({
-  email: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  consent: PurpleConsentSchema.optional(),
-});
-export type BuyerWithConsentCreateRequest = z.infer<
-  typeof BuyerWithConsentCreateRequestSchema
->;
-
-export const BuyerWithConsentUpdateRequestSchema = z.object({
-  email: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  consent: FluffyConsentSchema.optional(),
-});
-export type BuyerWithConsentUpdateRequest = z.infer<
-  typeof BuyerWithConsentUpdateRequestSchema
->;
-
-export const BuyerWithConsentResponseSchema = z.object({
-  email: z.string().optional(),
-  first_name: z.string().optional(),
-  full_name: z.string().optional(),
-  last_name: z.string().optional(),
-  phone_number: z.string().optional(),
-  consent: TentacledConsentSchema.optional(),
-});
-export type BuyerWithConsentResponse = z.infer<
-  typeof BuyerWithConsentResponseSchema
->;
-
-export const AppliedElementSchema = z.object({
-  allocations: z.array(AllocationElementSchema).optional(),
-  amount: z.number(),
-  automatic: z.boolean().optional(),
-  code: z.string().optional(),
-  method: MethodSchema.optional(),
-  priority: z.number().optional(),
-  title: z.string(),
-});
-export type AppliedElement = z.infer<typeof AppliedElementSchema>;
-
-export const AppliedClassSchema = z.object({
-  allocations: z.array(AllocationClassSchema).optional(),
-  amount: z.number(),
-  automatic: z.boolean().optional(),
-  code: z.string().optional(),
-  method: MethodSchema.optional(),
-  priority: z.number().optional(),
-  title: z.string(),
-});
-export type AppliedClass = z.infer<typeof AppliedClassSchema>;
-
-export const DiscountsAppliedSchema = z.object({
-  allocations: z.array(AppliedAllocationSchema).optional(),
-  amount: z.number(),
-  automatic: z.boolean().optional(),
-  code: z.string().optional(),
-  method: MethodSchema.optional(),
-  priority: z.number().optional(),
-  title: z.string(),
-});
-export type DiscountsApplied = z.infer<typeof DiscountsAppliedSchema>;
-
-export const FulfillmentRequestSchema = z.object({
-  methods: z.array(MethodElementSchema).optional(),
-});
-export type FulfillmentRequest = z.infer<typeof FulfillmentRequestSchema>;
-
-export const CheckoutWithFulfillmentUpdateRequestSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  currency: z.string(),
-  id: z.string(),
-  line_items: z.array(LineItemClassSchema),
-  payment: CheckoutUpdateRequestPaymentSchema,
-  fulfillment: FulfillmentRequestSchema.optional(),
-});
-export type CheckoutWithFulfillmentUpdateRequest = z.infer<
-  typeof CheckoutWithFulfillmentUpdateRequestSchema
->;
-
-export const FulfillmentGroupResponseSchema = z.object({
-  id: z.string(),
-  line_item_ids: z.array(z.string()),
-  options: z.array(FulfillmentOptionResponseSchema).optional(),
-  selected_option_id: z.union([z.null(), z.string()]).optional(),
-});
-export type FulfillmentGroupResponse = z.infer<
-  typeof FulfillmentGroupResponseSchema
->;
-
-export const UcpClassSchema = z.object({
-  capabilities: z.array(CapabilityDiscoverySchema),
-  services: z.record(z.string(), UcpServiceSchema),
-  version: z.string(),
-});
-export type UcpClass = z.infer<typeof UcpClassSchema>;
-
-export const PaymentClassSchema = z.object({
-  instruments: z.array(PaymentInstrumentSchema).optional(),
-  selected_instrument_id: z.string().optional(),
-});
-export type PaymentClass = z.infer<typeof PaymentClassSchema>;
-
-export const CheckoutResponseSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  continue_url: z.string().optional(),
-  currency: z.string(),
-  expires_at: z.coerce.date().optional(),
-  id: z.string(),
-  line_items: z.array(LineItemResponseSchema),
-  links: z.array(LinkElementSchema),
-  messages: z.array(MessageElementSchema).optional(),
-  order: OrderClassSchema.optional(),
-  payment: PaymentResponseSchema,
-  status: CheckoutResponseStatusSchema,
-  totals: z.array(TotalResponseSchema),
-  ucp: UcpCheckoutResponseSchema,
-});
-export type CheckoutResponse = z.infer<typeof CheckoutResponseSchema>;
-
-export const CheckoutUpdateRequestSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  currency: z.string(),
-  id: z.string(),
-  line_items: z.array(LineItemClassSchema),
-  payment: CheckoutUpdateRequestPaymentSchema,
-});
-export type CheckoutUpdateRequest = z.infer<typeof CheckoutUpdateRequestSchema>;
-
-export const FulfillmentSchema = z.object({
-  events: z.array(EventElementSchema).optional(),
-  expectations: z.array(ExpectationElementSchema).optional(),
-});
-export type Fulfillment = z.infer<typeof FulfillmentSchema>;
-
-export const CheckoutWithBuyerConsentCreateRequestSchema = z.object({
-  buyer: BuyerWithConsentCreateRequestSchema.optional(),
-  currency: z.string(),
-  line_items: z.array(LineItemElementSchema),
-  payment: PaymentClassSchema,
-});
-export type CheckoutWithBuyerConsentCreateRequest = z.infer<
-  typeof CheckoutWithBuyerConsentCreateRequestSchema
->;
-
-export const CheckoutWithBuyerConsentUpdateRequestSchema = z.object({
-  buyer: BuyerWithConsentUpdateRequestSchema.optional(),
-  currency: z.string(),
-  id: z.string(),
-  line_items: z.array(LineItemClassSchema),
-  payment: CheckoutUpdateRequestPaymentSchema,
-});
-export type CheckoutWithBuyerConsentUpdateRequest = z.infer<
-  typeof CheckoutWithBuyerConsentUpdateRequestSchema
->;
-
-export const CheckoutWithBuyerConsentResponseSchema = z.object({
-  buyer: BuyerWithConsentResponseSchema.optional(),
-  continue_url: z.string().optional(),
-  currency: z.string(),
-  expires_at: z.coerce.date().optional(),
-  id: z.string(),
-  line_items: z.array(LineItemResponseSchema),
-  links: z.array(LinkElementSchema),
-  messages: z.array(MessageElementSchema).optional(),
-  order: OrderClassSchema.optional(),
-  payment: PaymentResponseSchema,
-  status: CheckoutResponseStatusSchema,
-  totals: z.array(TotalResponseSchema),
-  ucp: UcpCheckoutResponseSchema,
-});
-export type CheckoutWithBuyerConsentResponse = z.infer<
-  typeof CheckoutWithBuyerConsentResponseSchema
->;
-
-export const CheckoutWithDiscountCreateRequestDiscountsSchema = z.object({
-  applied: z.array(AppliedElementSchema).optional(),
-  codes: z.array(z.string()).optional(),
-});
-export type CheckoutWithDiscountCreateRequestDiscounts = z.infer<
-  typeof CheckoutWithDiscountCreateRequestDiscountsSchema
->;
-
-export const CheckoutWithDiscountUpdateRequestDiscountsSchema = z.object({
-  applied: z.array(AppliedClassSchema).optional(),
-  codes: z.array(z.string()).optional(),
-});
-export type CheckoutWithDiscountUpdateRequestDiscounts = z.infer<
-  typeof CheckoutWithDiscountUpdateRequestDiscountsSchema
->;
-
-export const CheckoutWithDiscountResponseDiscountsSchema = z.object({
-  applied: z.array(DiscountsAppliedSchema).optional(),
-  codes: z.array(z.string()).optional(),
-});
-export type CheckoutWithDiscountResponseDiscounts = z.infer<
-  typeof CheckoutWithDiscountResponseDiscountsSchema
->;
-
-export const CheckoutWithFulfillmentCreateRequestSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  currency: z.string(),
-  line_items: z.array(LineItemElementSchema),
-  payment: PaymentClassSchema,
-  fulfillment: FulfillmentRequestSchema.optional(),
-});
-export type CheckoutWithFulfillmentCreateRequest = z.infer<
-  typeof CheckoutWithFulfillmentCreateRequestSchema
->;
-
-export const FulfillmentMethodResponseSchema = z.object({
-  destinations: z.array(FulfillmentDestinationResponseSchema).optional(),
-  groups: z.array(FulfillmentGroupResponseSchema).optional(),
-  id: z.string(),
-  line_item_ids: z.array(z.string()),
-  selected_destination_id: z.union([z.null(), z.string()]).optional(),
-  type: TypeElementSchema,
-});
-export type FulfillmentMethodResponse = z.infer<
-  typeof FulfillmentMethodResponseSchema
->;
-
-export const UcpDiscoveryProfileSchema = z.object({
-  payment: PaymentSchema.optional(),
-  signing_keys: z.array(SigningKeySchema).optional(),
-  ucp: UcpClassSchema,
-});
-export type UcpDiscoveryProfile = z.infer<typeof UcpDiscoveryProfileSchema>;
-
-export const CheckoutCreateRequestSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  currency: z.string(),
-  line_items: z.array(LineItemElementSchema),
-  payment: PaymentClassSchema,
-});
-export type CheckoutCreateRequest = z.infer<typeof CheckoutCreateRequestSchema>;
-
-export const OrderSchema = z.object({
-  adjustments: z.array(AdjustmentElementSchema).optional(),
-  checkout_id: z.string(),
-  fulfillment: FulfillmentSchema,
-  id: z.string(),
-  line_items: z.array(OrderLineItemClassSchema),
-  permalink_url: z.string(),
-  totals: z.array(TotalResponseSchema),
-  ucp: UcpOrderResponseSchema,
-});
-export type Order = z.infer<typeof OrderSchema>;
-
-export const CheckoutWithDiscountCreateRequestSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  currency: z.string(),
-  line_items: z.array(LineItemElementSchema),
-  payment: PaymentClassSchema,
-  discounts: CheckoutWithDiscountCreateRequestDiscountsSchema.optional(),
-});
-export type CheckoutWithDiscountCreateRequest = z.infer<
-  typeof CheckoutWithDiscountCreateRequestSchema
->;
-
-export const CheckoutWithDiscountUpdateRequestSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  currency: z.string(),
-  id: z.string(),
-  line_items: z.array(LineItemClassSchema),
-  payment: CheckoutUpdateRequestPaymentSchema,
-  discounts: CheckoutWithDiscountUpdateRequestDiscountsSchema.optional(),
-});
-export type CheckoutWithDiscountUpdateRequest = z.infer<
-  typeof CheckoutWithDiscountUpdateRequestSchema
->;
-
-export const CheckoutWithDiscountResponseSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  continue_url: z.string().optional(),
-  currency: z.string(),
-  expires_at: z.coerce.date().optional(),
-  id: z.string(),
-  line_items: z.array(LineItemResponseSchema),
-  links: z.array(LinkElementSchema),
-  messages: z.array(MessageElementSchema).optional(),
-  order: OrderClassSchema.optional(),
-  payment: PaymentResponseSchema,
-  status: CheckoutResponseStatusSchema,
-  totals: z.array(TotalResponseSchema),
-  ucp: UcpCheckoutResponseSchema,
-  discounts: CheckoutWithDiscountResponseDiscountsSchema.optional(),
-});
-export type CheckoutWithDiscountResponse = z.infer<
-  typeof CheckoutWithDiscountResponseSchema
->;
-
-export const FulfillmentResponseSchema = z.object({
-  available_methods: z
-    .array(FulfillmentAvailableMethodResponseSchema)
-    .optional(),
-  methods: z.array(FulfillmentMethodResponseSchema).optional(),
-});
-export type FulfillmentResponse = z.infer<typeof FulfillmentResponseSchema>;
-
-export const CheckoutWithFulfillmentResponseSchema = z.object({
-  buyer: BuyerClassSchema.optional(),
-  continue_url: z.string().optional(),
-  currency: z.string(),
-  expires_at: z.coerce.date().optional(),
-  id: z.string(),
-  line_items: z.array(LineItemResponseSchema),
-  links: z.array(LinkElementSchema),
-  messages: z.array(MessageElementSchema).optional(),
-  order: OrderClassSchema.optional(),
-  payment: PaymentResponseSchema,
-  status: CheckoutResponseStatusSchema,
-  totals: z.array(TotalResponseSchema),
-  ucp: UcpCheckoutResponseSchema,
-  fulfillment: FulfillmentResponseSchema.optional(),
-});
-export type CheckoutWithFulfillmentResponse = z.infer<
-  typeof CheckoutWithFulfillmentResponseSchema
->;
+// AUTO-GENERATED — do not edit by hand.
+// Generated from UCP spec v2026-01-23
+// Run: npm run generate
+import * as z from 'zod';
+
+export const CapabilitySchema = z.any().describe("Schema for UCP capabilities and extensions. Extensions are capabilities with an 'extends' field. Uses reverse-domain naming for governance.")
+
+export const PaymentHandlerSchema = z.any().describe("Schema for UCP payment handlers. Handlers define how payment instruments are processed.")
+
+export const ServiceSchema = z.any().describe("Service binding for a specific transport. Each transport binding is a separate entry in the service array.")
+
+export const Ap2MandateSchema = z.any().describe("Extends Checkout with cryptographic mandate support for non-repudiable authorization per the AP2 protocol. Uses embedded signature model with ap2 namespace.")
+
+export const BuyerConsentSchema = z.any().describe("Extends Checkout with buyer consent tracking for privacy compliance via the buyer object.")
+
+export const CheckoutSchema = z.object({ "ucp": z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "services": z.record(z.array(z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "spec": z.string().url().describe("URL to human-readable specification document.").optional(), "schema": z.string().url().describe("URL to JSON Schema defining this entity's structure and payloads.").optional(), "id": z.string().describe("Unique identifier for this entity instance. Used to disambiguate when multiple instances exist.").optional(), "config": z.record(z.any()).describe("Entity-specific configuration. Structure defined by each entity's schema.").optional() }).describe("Shared foundation for all UCP entities."), z.object({ "transport": z.enum(["rest","mcp","a2a","embedded"]).describe("Transport protocol for this service binding."), "endpoint": z.string().url().describe("Endpoint URL for this transport binding.").optional() })))).describe("Service registry keyed by reverse-domain name.").optional(), "capabilities": z.record(z.array(z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "spec": z.string().url().describe("URL to human-readable specification document.").optional(), "schema": z.string().url().describe("URL to JSON Schema defining this entity's structure and payloads.").optional(), "id": z.string().describe("Unique identifier for this entity instance. Used to disambiguate when multiple instances exist.").optional(), "config": z.record(z.any()).describe("Entity-specific configuration. Structure defined by each entity's schema.").optional() }).describe("Shared foundation for all UCP entities."), z.object({ "extends": z.string().regex(new RegExp("^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$")).describe("Parent capability this extends. Present for extensions, absent for root capabilities.").optional() })))).describe("Capability registry keyed by reverse-domain name.").optional(), "payment_handlers": z.record(z.array(z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "spec": z.string().url().describe("URL to human-readable specification document.").optional(), "schema": z.string().url().describe("URL to JSON Schema defining this entity's structure and payloads.").optional(), "id": z.string().describe("Unique identifier for this entity instance. Used to disambiguate when multiple instances exist.").optional(), "config": z.record(z.any()).describe("Entity-specific configuration. Structure defined by each entity's schema.").optional() }).describe("Shared foundation for all UCP entities."), z.record(z.any())))).describe("Payment handler registry keyed by reverse-domain name.").optional() }).describe("Base UCP metadata with shared properties for all schema types."), z.any()).describe("UCP metadata for checkout responses."), "id": z.string().describe("Unique identifier of the checkout session."), "line_items": z.array(z.object({ "id": z.string(), "item": z.object({ "id": z.string().describe("Should be recognized by both the Platform, and the Business. For Google it should match the id provided in the \"id\" field in the product feed."), "title": z.string().describe("Product title."), "price": z.number().int().gte(0).describe("Unit price in minor (cents) currency units."), "image_url": z.string().url().describe("Product image URI.").optional() }), "quantity": z.number().int().gte(1).describe("Quantity of the item being purchased."), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Line item totals breakdown."), "parent_id": z.string().describe("Parent line item identifier for any nested structures.").optional() }).describe("Line item object. Expected to use the currency of the parent object.")).describe("List of line items being checked out."), "buyer": z.object({ "first_name": z.string().describe("First name of the buyer.").optional(), "last_name": z.string().describe("Last name of the buyer.").optional(), "email": z.string().describe("Email of the buyer.").optional(), "phone_number": z.string().describe("E.164 standard.").optional() }).catchall(z.any()).describe("Representation of the buyer.").optional(), "context": z.object({ "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used. Optional hint for market context (currency, availability, pricing)—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. For example, California or another appropriate first-level Administrative division. Optional hint for progressive localization—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043. Optional hint for regional refinement—higher-resolution data (e.g., shipping address) supersedes this value.").optional() }).catchall(z.any()).describe("Provisional buyer signals for relevance and localization: product availability, pricing, currency, tax, shipping, payment methods, and eligibility (e.g., student or affiliation discounts). Businesses SHOULD use these values when authoritative data (e.g., address) is absent, and MAY ignore unsupported values without returning errors. Context can be disclosed progressively—coarse signals early, finer resolution as the session progresses. Higher-resolution data (shipping address, billing address) supersedes context. Platforms SHOULD progressively enhance context throughout the buyer journey.").optional(), "status": z.enum(["incomplete","requires_escalation","ready_for_complete","complete_in_progress","completed","canceled"]).describe("Checkout state indicating the current phase and required action. See Checkout Status lifecycle documentation for state transition details."), "currency": z.string().describe("ISO 4217 currency code reflecting the merchant's market determination. Derived from address, context, and geo IP—buyers provide signals, merchants determine currency."), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Different cart totals."), "messages": z.array(z.record(z.any()).and(z.any().superRefine((x, ctx) => {
+    const schemas = [z.object({ "type": z.literal("error").describe("Message type discriminator."), "code": z.string().describe("Error code. Possible values include: missing, invalid, out_of_stock, payment_declined, requires_sign_in, requires_3ds, requires_identity_linking. Freeform codes also allowed."), "path": z.string().describe("RFC 9535 JSONPath to the component the message refers to (e.g., $.items[1]).").optional(), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain"), "content": z.string().describe("Human-readable message."), "severity": z.enum(["recoverable","requires_buyer_input","requires_buyer_review"]).describe("Declares who resolves this error. 'recoverable': agent can fix via API. 'requires_buyer_input': merchant requires information their API doesn't support collecting programmatically (checkout incomplete). 'requires_buyer_review': buyer must authorize before order placement due to policy, regulatory, or entitlement rules (checkout complete). Errors with 'requires_*' severity contribute to 'status: requires_escalation'.") }), z.object({ "type": z.literal("warning").describe("Message type discriminator."), "path": z.string().describe("JSONPath (RFC 9535) to related field (e.g., $.line_items[0]).").optional(), "code": z.string().describe("Warning code. Machine-readable identifier for the warning type (e.g., final_sale, prop65, fulfillment_changed, age_restricted, etc.)."), "content": z.string().describe("Human-readable warning message that MUST be displayed."), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain") }), z.object({ "type": z.literal("info").describe("Message type discriminator."), "path": z.string().describe("RFC 9535 JSONPath to the component the message refers to.").optional(), "code": z.string().describe("Info code for programmatic handling.").optional(), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain"), "content": z.string().describe("Human-readable message.") })];
+    const errors = schemas.reduce<z.ZodError[]>(
+      (errors, schema) =>
+        ((result) =>
+          result.error ? [...errors, result.error] : errors)(
+          schema.safeParse(x),
+        ),
+      [],
+    );
+    const passed = schemas.length - errors.length;
+    if (passed !== 1) {
+      ctx.addIssue(errors.length ? {
+        path: ctx.path,
+        code: "invalid_union",
+        unionErrors: errors,
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      } : {
+        path: ctx.path,
+        code: "custom",
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      });
+    }
+  })).describe("Container for error, warning, or info messages.")).describe("List of messages with error and info about the checkout session state.").optional(), "links": z.array(z.object({ "type": z.string().describe("Type of link. Well-known values: `privacy_policy`, `terms_of_service`, `refund_policy`, `shipping_policy`, `faq`. Consumers SHOULD handle unknown values gracefully by displaying them using the `title` field or omitting the link."), "url": z.string().url().describe("The actual URL pointing to the content to be displayed."), "title": z.string().describe("Optional display text for the link. When provided, use this instead of generating from type.").optional() })).describe("Links to be displayed by the platform (Privacy Policy, TOS). Mandatory for legal compliance."), "expires_at": z.string().datetime({ offset: true }).describe("RFC 3339 expiry timestamp. Default TTL is 6 hours from creation if not sent.").optional(), "continue_url": z.string().url().describe("URL for checkout handoff and session recovery. MUST be provided when status is requires_escalation. See specification for format and availability requirements.").optional(), "payment": z.any().optional(), "order": z.object({ "id": z.string().describe("Unique order identifier."), "permalink_url": z.string().url().describe("Permalink to access the order on merchant site.") }).describe("Details about an order created for this checkout session.").optional() }).catchall(z.any()).describe("Base checkout schema. Extensions compose onto this using allOf.")
+
+export const CheckoutCreateRequestSchema = z.object({ "line_items": z.array(z.object({ "id": z.string(), "item": z.object({ "id": z.string().describe("Should be recognized by both the Platform, and the Business. For Google it should match the id provided in the \"id\" field in the product feed."), "title": z.string().describe("Product title."), "price": z.number().int().gte(0).describe("Unit price in minor (cents) currency units."), "image_url": z.string().url().describe("Product image URI.").optional() }), "quantity": z.number().int().gte(1).describe("Quantity of the item being purchased."), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Line item totals breakdown."), "parent_id": z.string().describe("Parent line item identifier for any nested structures.").optional() }).describe("Line item object. Expected to use the currency of the parent object.")).describe("List of line items being checked out."), "buyer": z.object({ "first_name": z.string().describe("First name of the buyer.").optional(), "last_name": z.string().describe("Last name of the buyer.").optional(), "email": z.string().describe("Email of the buyer.").optional(), "phone_number": z.string().describe("E.164 standard.").optional() }).catchall(z.any()).describe("Representation of the buyer.").optional(), "context": z.object({ "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used. Optional hint for market context (currency, availability, pricing)—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. For example, California or another appropriate first-level Administrative division. Optional hint for progressive localization—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043. Optional hint for regional refinement—higher-resolution data (e.g., shipping address) supersedes this value.").optional() }).catchall(z.any()).describe("Provisional buyer signals for relevance and localization: product availability, pricing, currency, tax, shipping, payment methods, and eligibility (e.g., student or affiliation discounts). Businesses SHOULD use these values when authoritative data (e.g., address) is absent, and MAY ignore unsupported values without returning errors. Context can be disclosed progressively—coarse signals early, finer resolution as the session progresses. Higher-resolution data (shipping address, billing address) supersedes context. Platforms SHOULD progressively enhance context throughout the buyer journey.").optional(), "payment": z.any().optional() }).strict()
+
+export const CheckoutUpdateRequestSchema = z.object({ "id": z.string().describe("Unique identifier of the checkout session."), "line_items": z.array(z.object({ "id": z.string(), "item": z.object({ "id": z.string().describe("Should be recognized by both the Platform, and the Business. For Google it should match the id provided in the \"id\" field in the product feed."), "title": z.string().describe("Product title."), "price": z.number().int().gte(0).describe("Unit price in minor (cents) currency units."), "image_url": z.string().url().describe("Product image URI.").optional() }), "quantity": z.number().int().gte(1).describe("Quantity of the item being purchased."), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Line item totals breakdown."), "parent_id": z.string().describe("Parent line item identifier for any nested structures.").optional() }).describe("Line item object. Expected to use the currency of the parent object.")).describe("List of line items being checked out."), "buyer": z.object({ "first_name": z.string().describe("First name of the buyer.").optional(), "last_name": z.string().describe("Last name of the buyer.").optional(), "email": z.string().describe("Email of the buyer.").optional(), "phone_number": z.string().describe("E.164 standard.").optional() }).catchall(z.any()).describe("Representation of the buyer.").optional(), "context": z.object({ "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used. Optional hint for market context (currency, availability, pricing)—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. For example, California or another appropriate first-level Administrative division. Optional hint for progressive localization—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043. Optional hint for regional refinement—higher-resolution data (e.g., shipping address) supersedes this value.").optional() }).catchall(z.any()).describe("Provisional buyer signals for relevance and localization: product availability, pricing, currency, tax, shipping, payment methods, and eligibility (e.g., student or affiliation discounts). Businesses SHOULD use these values when authoritative data (e.g., address) is absent, and MAY ignore unsupported values without returning errors. Context can be disclosed progressively—coarse signals early, finer resolution as the session progresses. Higher-resolution data (shipping address, billing address) supersedes context. Platforms SHOULD progressively enhance context throughout the buyer journey.").optional(), "payment": z.any().optional() }).strict()
+
+export const CheckoutCompleteRequestSchema = z.object({ "payment": z.any() }).strict()
+
+export const DiscountSchema = z.any().describe("Extends Checkout with discount code support, enabling agents to apply promotional, loyalty, referral, and other discount codes.")
+
+export const FulfillmentExtensionSchema = z.any().describe("Extends Checkout with fulfillment support using methods, destinations, and groups.")
+
+export const OrderSchema = z.object({ "ucp": z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "services": z.record(z.array(z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "spec": z.string().url().describe("URL to human-readable specification document.").optional(), "schema": z.string().url().describe("URL to JSON Schema defining this entity's structure and payloads.").optional(), "id": z.string().describe("Unique identifier for this entity instance. Used to disambiguate when multiple instances exist.").optional(), "config": z.record(z.any()).describe("Entity-specific configuration. Structure defined by each entity's schema.").optional() }).describe("Shared foundation for all UCP entities."), z.object({ "transport": z.enum(["rest","mcp","a2a","embedded"]).describe("Transport protocol for this service binding."), "endpoint": z.string().url().describe("Endpoint URL for this transport binding.").optional() })))).describe("Service registry keyed by reverse-domain name.").optional(), "capabilities": z.record(z.array(z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "spec": z.string().url().describe("URL to human-readable specification document.").optional(), "schema": z.string().url().describe("URL to JSON Schema defining this entity's structure and payloads.").optional(), "id": z.string().describe("Unique identifier for this entity instance. Used to disambiguate when multiple instances exist.").optional(), "config": z.record(z.any()).describe("Entity-specific configuration. Structure defined by each entity's schema.").optional() }).describe("Shared foundation for all UCP entities."), z.object({ "extends": z.string().regex(new RegExp("^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$")).describe("Parent capability this extends. Present for extensions, absent for root capabilities.").optional() })))).describe("Capability registry keyed by reverse-domain name.").optional(), "payment_handlers": z.record(z.array(z.intersection(z.object({ "version": z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")).describe("UCP version in YYYY-MM-DD format."), "spec": z.string().url().describe("URL to human-readable specification document.").optional(), "schema": z.string().url().describe("URL to JSON Schema defining this entity's structure and payloads.").optional(), "id": z.string().describe("Unique identifier for this entity instance. Used to disambiguate when multiple instances exist.").optional(), "config": z.record(z.any()).describe("Entity-specific configuration. Structure defined by each entity's schema.").optional() }).describe("Shared foundation for all UCP entities."), z.record(z.any())))).describe("Payment handler registry keyed by reverse-domain name.").optional() }).describe("Base UCP metadata with shared properties for all schema types."), z.any()).describe("UCP metadata for order responses. No payment handlers needed post-purchase."), "id": z.string().describe("Unique order identifier."), "checkout_id": z.string().describe("Associated checkout ID for reconciliation."), "permalink_url": z.string().url().describe("Permalink to access the order on merchant site."), "line_items": z.array(z.object({ "id": z.string().describe("Line item identifier."), "item": z.object({ "id": z.string().describe("Should be recognized by both the Platform, and the Business. For Google it should match the id provided in the \"id\" field in the product feed."), "title": z.string().describe("Product title."), "price": z.number().int().gte(0).describe("Unit price in minor (cents) currency units."), "image_url": z.string().url().describe("Product image URI.").optional() }).describe("Product data (id, title, price, image_url)."), "quantity": z.object({ "total": z.number().int().gte(0).describe("Current total quantity."), "fulfilled": z.number().int().gte(0).describe("Quantity fulfilled (sum from fulfillment events).") }).describe("Quantity tracking. Both total and fulfilled are derived from events."), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Line item totals breakdown."), "status": z.enum(["processing","partial","fulfilled"]).describe("Derived status: fulfilled if quantity.fulfilled == quantity.total, partial if quantity.fulfilled > 0, otherwise processing."), "parent_id": z.string().describe("Parent line item identifier for any nested structures.").optional() })).describe("Immutable line items — source of truth for what was ordered."), "fulfillment": z.object({ "expectations": z.array(z.object({ "id": z.string().describe("Expectation identifier."), "line_items": z.array(z.object({ "id": z.string().describe("Line item ID reference."), "quantity": z.number().int().gte(1).describe("Quantity of this item in this expectation.") })).describe("Which line items and quantities are in this expectation."), "method_type": z.enum(["shipping","pickup","digital"]).describe("Delivery method type (shipping, pickup, digital)."), "destination": z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }).describe("Delivery destination address."), "description": z.string().describe("Human-readable delivery description (e.g., 'Arrives in 5-8 business days').").optional(), "fulfillable_on": z.string().describe("When this expectation can be fulfilled: 'now' or ISO 8601 timestamp for future date (backorder, pre-order).").optional() }).describe("Buyer-facing fulfillment expectation representing logical groupings of items (e.g., 'package'). Can be split, merged, or adjusted post-order to set buyer expectations for when/how items arrive.")).describe("Buyer-facing groups representing when/how items will be delivered. Can be split, merged, or adjusted post-order.").optional(), "events": z.array(z.object({ "id": z.string().describe("Fulfillment event identifier."), "occurred_at": z.string().datetime({ offset: true }).describe("RFC 3339 timestamp when this fulfillment event occurred."), "type": z.string().describe("Fulfillment event type. Common values include: processing (preparing to ship), shipped (handed to carrier), in_transit (in delivery network), delivered (received by buyer), failed_attempt (delivery attempt failed), canceled (fulfillment canceled), undeliverable (cannot be delivered), returned_to_sender (returned to merchant)."), "line_items": z.array(z.object({ "id": z.string().describe("Line item ID reference."), "quantity": z.number().int().gte(1).describe("Quantity fulfilled in this event.") })).describe("Which line items and quantities are fulfilled in this event."), "tracking_number": z.string().describe("Carrier tracking number (required if type != processing).").optional(), "tracking_url": z.string().url().describe("URL to track this shipment (required if type != processing).").optional(), "carrier": z.string().describe("Carrier name (e.g., 'FedEx', 'USPS').").optional(), "description": z.string().describe("Human-readable description of the shipment status or delivery information (e.g., 'Delivered to front door', 'Out for delivery').").optional() }).describe("Append-only fulfillment event representing an actual shipment. References line items by ID.")).describe("Append-only event log of actual shipments. Each event references line items by ID.").optional() }).describe("Fulfillment data: buyer expectations and what actually happened."), "adjustments": z.array(z.object({ "id": z.string().describe("Adjustment event identifier."), "type": z.string().describe("Type of adjustment (open string). Typically money-related like: refund, return, credit, price_adjustment, dispute, cancellation. Can be any value that makes sense for the merchant's business."), "occurred_at": z.string().datetime({ offset: true }).describe("RFC 3339 timestamp when this adjustment occurred."), "status": z.enum(["pending","completed","failed"]).describe("Adjustment status."), "line_items": z.array(z.object({ "id": z.string().describe("Line item ID reference."), "quantity": z.number().int().gte(1).describe("Quantity affected by this adjustment.") })).describe("Which line items and quantities are affected (optional).").optional(), "amount": z.number().int().describe("Amount in minor units (cents) for refunds, credits, price adjustments (optional).").optional(), "description": z.string().describe("Human-readable reason or description (e.g., 'Defective item', 'Customer requested').").optional() }).describe("Append-only event that exists independently of fulfillment. Typically represents money movements but can be any post-order change. Polymorphic type that can optionally reference line items.")).describe("Append-only event log of money movements (refunds, returns, credits, disputes, cancellations, etc.) that exist independently of fulfillment.").optional(), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Different totals for the order.") }).describe("Order schema with immutable line items, buyer-facing fulfillment expectations, and append-only event logs.")
+
+export const PaymentSchema = z.object({ "instruments": z.array(z.any()).describe("The payment instruments available for this payment. Each instrument is associated with a specific handler via the handler_id field. Handlers can extend the base payment_instrument schema to add handler-specific fields.").optional() }).describe("Payment configuration containing handlers.")
+
+export const AccountInfoSchema = z.object({ "payment_account_reference": z.string().describe("EMVCo PAR. A unique identifier linking a payment card to a specific account, enabling tracking across tokens (Apple Pay, physical card, etc).").optional() }).describe("Non-sensitive backend identifiers for linking.")
+
+export const AdjustmentSchema = z.object({ "id": z.string().describe("Adjustment event identifier."), "type": z.string().describe("Type of adjustment (open string). Typically money-related like: refund, return, credit, price_adjustment, dispute, cancellation. Can be any value that makes sense for the merchant's business."), "occurred_at": z.string().datetime({ offset: true }).describe("RFC 3339 timestamp when this adjustment occurred."), "status": z.enum(["pending","completed","failed"]).describe("Adjustment status."), "line_items": z.array(z.object({ "id": z.string().describe("Line item ID reference."), "quantity": z.number().int().gte(1).describe("Quantity affected by this adjustment.") })).describe("Which line items and quantities are affected (optional).").optional(), "amount": z.number().int().describe("Amount in minor units (cents) for refunds, credits, price adjustments (optional).").optional(), "description": z.string().describe("Human-readable reason or description (e.g., 'Defective item', 'Customer requested').").optional() }).describe("Append-only event that exists independently of fulfillment. Typically represents money movements but can be any post-order change. Polymorphic type that can optionally reference line items.")
+
+export const BindingSchema = z.object({ "checkout_id": z.string().describe("The checkout session identifier this token is bound to."), "identity": z.object({ "access_token": z.string().describe("Unique identifier for this participant, obtained during onboarding with the tokenizer.") }).describe("The participant this token is bound to. Required when acting on behalf of another participant (e.g., agent tokenizing for merchant). Omit when the authenticated caller is the binding target.").optional() }).describe("Binds a token to a specific checkout session and participant. Prevents token reuse across different checkouts or participants.")
+
+export const BusinessFulfillmentConfigSchema = z.object({ "allows_multi_destination": z.object({ "shipping": z.boolean().describe("Multiple shipping destinations allowed.").optional(), "pickup": z.boolean().describe("Multiple pickup locations allowed.").optional() }).strict().describe("Permits multiple destinations per method type.").optional(), "allows_method_combinations": z.array(z.array(z.enum(["shipping","pickup"]))).describe("Allowed method type combinations.").optional() }).describe("Business's fulfillment configuration.")
+
+export const BuyerSchema = z.object({ "first_name": z.string().describe("First name of the buyer.").optional(), "last_name": z.string().describe("Last name of the buyer.").optional(), "email": z.string().describe("Email of the buyer.").optional(), "phone_number": z.string().describe("E.164 standard.").optional() }).catchall(z.any())
+
+export const CardCredentialSchema = z.intersection(z.object({ "type": z.string().describe("The credential type discriminator. Specific schemas will constrain this to a constant value.") }).catchall(z.any()).describe("The base definition for any payment credential. Handlers define specific credential types."), z.object({ "type": z.literal("card").describe("The credential type identifier for card credentials."), "card_number_type": z.enum(["fpan","network_token","dpan"]).describe("The type of card number. Network tokens are preferred with fallback to FPAN. See PCI Scope for more details."), "number": z.string().describe("Card number.").optional(), "expiry_month": z.number().int().describe("The month of the card's expiration date (1-12).").optional(), "expiry_year": z.number().int().describe("The year of the card's expiration date.").optional(), "name": z.string().describe("Cardholder name.").optional(), "cvc": z.string().max(4).describe("Card CVC number.").optional(), "cryptogram": z.string().describe("Cryptogram provided with network tokens.").optional(), "eci_value": z.string().describe("Electronic Commerce Indicator / Security Level Indicator provided with network tokens.").optional() })).describe("A card credential containing sensitive payment card details including raw Primary Account Numbers (PANs). This credential type MUST NOT be used for checkout, only with payment handlers that tokenize or encrypt credentials. CRITICAL: Both parties handling CardCredential (sender and receiver) MUST be PCI DSS compliant. Transmission MUST use HTTPS/TLS with strong cipher suites.")
+
+export const CardPaymentInstrumentSchema = z.intersection(z.any(), z.object({ "type": z.literal("card").describe("Indicates this is a card payment instrument."), "display": z.object({ "brand": z.string().describe("The card brand/network (e.g., visa, mastercard, amex).").optional(), "last_digits": z.string().describe("Last 4 digits of the card number.").optional(), "expiry_month": z.number().int().describe("The month of the card's expiration date (1-12).").optional(), "expiry_year": z.number().int().describe("The year of the card's expiration date.").optional(), "description": z.string().describe("An optional rich text description of the card to display to the user (e.g., 'Visa ending in 1234, expires 12/2025').").optional(), "card_art": z.string().url().describe("An optional URI to a rich image representing the card (e.g., card art provided by the issuer).").optional() }).describe("Display information for this card payment instrument.").optional() })).describe("A basic card payment instrument with visible card details. Can be inherited by a handler's instrument schema to define handler-specific display details or more complex credential structures.")
+
+export const ContextSchema = z.object({ "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used. Optional hint for market context (currency, availability, pricing)—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. For example, California or another appropriate first-level Administrative division. Optional hint for progressive localization—higher-resolution data (e.g., shipping address) supersedes this value.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043. Optional hint for regional refinement—higher-resolution data (e.g., shipping address) supersedes this value.").optional() }).catchall(z.any()).describe("Provisional buyer signals for relevance and localization: product availability, pricing, currency, tax, shipping, payment methods, and eligibility (e.g., student or affiliation discounts). Businesses SHOULD use these values when authoritative data (e.g., address) is absent, and MAY ignore unsupported values without returning errors. Context can be disclosed progressively—coarse signals early, finer resolution as the session progresses. Higher-resolution data (shipping address, billing address) supersedes context. Platforms SHOULD progressively enhance context throughout the buyer journey.")
+
+export const ExpectationSchema = z.object({ "id": z.string().describe("Expectation identifier."), "line_items": z.array(z.object({ "id": z.string().describe("Line item ID reference."), "quantity": z.number().int().gte(1).describe("Quantity of this item in this expectation.") })).describe("Which line items and quantities are in this expectation."), "method_type": z.enum(["shipping","pickup","digital"]).describe("Delivery method type (shipping, pickup, digital)."), "destination": z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }).describe("Delivery destination address."), "description": z.string().describe("Human-readable delivery description (e.g., 'Arrives in 5-8 business days').").optional(), "fulfillable_on": z.string().describe("When this expectation can be fulfilled: 'now' or ISO 8601 timestamp for future date (backorder, pre-order).").optional() }).describe("Buyer-facing fulfillment expectation representing logical groupings of items (e.g., 'package'). Can be split, merged, or adjusted post-order to set buyer expectations for when/how items arrive.")
+
+export const FulfillmentSchema = z.object({ "methods": z.array(z.object({ "id": z.string().describe("Unique fulfillment method identifier."), "type": z.enum(["shipping","pickup"]).describe("Fulfillment method type."), "line_item_ids": z.array(z.string()).describe("Line item IDs fulfilled via this method."), "destinations": z.array(z.record(z.any()).and(z.any().superRefine((x, ctx) => {
+    const schemas = [z.record(z.any()).and(z.intersection(z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }), z.object({ "id": z.string().describe("ID specific to this shipping destination.") }))).describe("Shipping destination."), z.object({ "id": z.string().describe("Unique location identifier."), "name": z.string().describe("Location name (e.g., store name)."), "address": z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }).describe("Physical address of the location.").optional() }).catchall(z.any()).describe("A pickup location (retail store, locker, etc.).")];
+    const errors = schemas.reduce<z.ZodError[]>(
+      (errors, schema) =>
+        ((result) =>
+          result.error ? [...errors, result.error] : errors)(
+          schema.safeParse(x),
+        ),
+      [],
+    );
+    const passed = schemas.length - errors.length;
+    if (passed !== 1) {
+      ctx.addIssue(errors.length ? {
+        path: ctx.path,
+        code: "invalid_union",
+        unionErrors: errors,
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      } : {
+        path: ctx.path,
+        code: "custom",
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      });
+    }
+  })).describe("A destination for fulfillment.")).describe("Available destinations. For shipping: addresses. For pickup: retail locations.").optional(), "selected_destination_id": z.union([z.string().describe("ID of the selected destination."), z.null().describe("ID of the selected destination.")]).describe("ID of the selected destination.").optional(), "groups": z.array(z.object({ "id": z.string().describe("Group identifier for referencing merchant-generated groups in updates."), "line_item_ids": z.array(z.string()).describe("Line item IDs included in this group/package."), "options": z.array(z.object({ "id": z.string().describe("Unique fulfillment option identifier."), "title": z.string().describe("Short label (e.g., 'Express Shipping', 'Curbside Pickup')."), "description": z.string().describe("Complete context for buyer decision (e.g., 'Arrives Dec 12-15 via FedEx').").optional(), "carrier": z.string().describe("Carrier name (for shipping).").optional(), "earliest_fulfillment_time": z.string().datetime({ offset: true }).describe("Earliest fulfillment date.").optional(), "latest_fulfillment_time": z.string().datetime({ offset: true }).describe("Latest fulfillment date.").optional(), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Fulfillment option totals breakdown.") }).catchall(z.any()).describe("A fulfillment option within a group (e.g., Standard Shipping $5, Express $15).")).describe("Available fulfillment options for this group.").optional(), "selected_option_id": z.union([z.string().describe("ID of the selected fulfillment option for this group."), z.null().describe("ID of the selected fulfillment option for this group.")]).describe("ID of the selected fulfillment option for this group.").optional() }).catchall(z.any()).describe("A merchant-generated package/group of line items with fulfillment options.")).describe("Fulfillment groups for selecting options. Agent sets selected_option_id on groups to choose shipping method.").optional() }).catchall(z.any()).describe("A fulfillment method (shipping or pickup) with destinations and groups.")).describe("Fulfillment methods for cart items.").optional(), "available_methods": z.array(z.object({ "type": z.enum(["shipping","pickup"]).describe("Fulfillment method type this availability applies to."), "line_item_ids": z.array(z.string()).describe("Line items available for this fulfillment method."), "fulfillable_on": z.union([z.string().describe("'now' for immediate availability, or ISO 8601 date for future (preorders, transfers)."), z.null().describe("'now' for immediate availability, or ISO 8601 date for future (preorders, transfers).")]).describe("'now' for immediate availability, or ISO 8601 date for future (preorders, transfers).").optional(), "description": z.string().describe("Human-readable availability info (e.g., 'Available for pickup at Downtown Store today').").optional() }).catchall(z.any()).describe("Inventory availability hint for a fulfillment method type.")).describe("Inventory availability hints.").optional() }).describe("Container for fulfillment methods and availability.")
+
+export const FulfillmentAvailableMethodSchema = z.object({ "type": z.enum(["shipping","pickup"]).describe("Fulfillment method type this availability applies to."), "line_item_ids": z.array(z.string()).describe("Line items available for this fulfillment method."), "fulfillable_on": z.union([z.string().describe("'now' for immediate availability, or ISO 8601 date for future (preorders, transfers)."), z.null().describe("'now' for immediate availability, or ISO 8601 date for future (preorders, transfers).")]).describe("'now' for immediate availability, or ISO 8601 date for future (preorders, transfers).").optional(), "description": z.string().describe("Human-readable availability info (e.g., 'Available for pickup at Downtown Store today').").optional() }).catchall(z.any()).describe("Inventory availability hint for a fulfillment method type.")
+
+export const FulfillmentDestinationSchema = z.record(z.any()).and(z.any().superRefine((x, ctx) => {
+    const schemas = [z.record(z.any()).and(z.intersection(z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }), z.object({ "id": z.string().describe("ID specific to this shipping destination.") }))).describe("Shipping destination."), z.object({ "id": z.string().describe("Unique location identifier."), "name": z.string().describe("Location name (e.g., store name)."), "address": z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }).describe("Physical address of the location.").optional() }).catchall(z.any()).describe("A pickup location (retail store, locker, etc.).")];
+    const errors = schemas.reduce<z.ZodError[]>(
+      (errors, schema) =>
+        ((result) =>
+          result.error ? [...errors, result.error] : errors)(
+          schema.safeParse(x),
+        ),
+      [],
+    );
+    const passed = schemas.length - errors.length;
+    if (passed !== 1) {
+      ctx.addIssue(errors.length ? {
+        path: ctx.path,
+        code: "invalid_union",
+        unionErrors: errors,
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      } : {
+        path: ctx.path,
+        code: "custom",
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      });
+    }
+  })).describe("A destination for fulfillment.")
+
+export const FulfillmentEventSchema = z.object({ "id": z.string().describe("Fulfillment event identifier."), "occurred_at": z.string().datetime({ offset: true }).describe("RFC 3339 timestamp when this fulfillment event occurred."), "type": z.string().describe("Fulfillment event type. Common values include: processing (preparing to ship), shipped (handed to carrier), in_transit (in delivery network), delivered (received by buyer), failed_attempt (delivery attempt failed), canceled (fulfillment canceled), undeliverable (cannot be delivered), returned_to_sender (returned to merchant)."), "line_items": z.array(z.object({ "id": z.string().describe("Line item ID reference."), "quantity": z.number().int().gte(1).describe("Quantity fulfilled in this event.") })).describe("Which line items and quantities are fulfilled in this event."), "tracking_number": z.string().describe("Carrier tracking number (required if type != processing).").optional(), "tracking_url": z.string().url().describe("URL to track this shipment (required if type != processing).").optional(), "carrier": z.string().describe("Carrier name (e.g., 'FedEx', 'USPS').").optional(), "description": z.string().describe("Human-readable description of the shipment status or delivery information (e.g., 'Delivered to front door', 'Out for delivery').").optional() }).describe("Append-only fulfillment event representing an actual shipment. References line items by ID.")
+
+export const FulfillmentGroupSchema = z.object({ "id": z.string().describe("Group identifier for referencing merchant-generated groups in updates."), "line_item_ids": z.array(z.string()).describe("Line item IDs included in this group/package."), "options": z.array(z.object({ "id": z.string().describe("Unique fulfillment option identifier."), "title": z.string().describe("Short label (e.g., 'Express Shipping', 'Curbside Pickup')."), "description": z.string().describe("Complete context for buyer decision (e.g., 'Arrives Dec 12-15 via FedEx').").optional(), "carrier": z.string().describe("Carrier name (for shipping).").optional(), "earliest_fulfillment_time": z.string().datetime({ offset: true }).describe("Earliest fulfillment date.").optional(), "latest_fulfillment_time": z.string().datetime({ offset: true }).describe("Latest fulfillment date.").optional(), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Fulfillment option totals breakdown.") }).catchall(z.any()).describe("A fulfillment option within a group (e.g., Standard Shipping $5, Express $15).")).describe("Available fulfillment options for this group.").optional(), "selected_option_id": z.union([z.string().describe("ID of the selected fulfillment option for this group."), z.null().describe("ID of the selected fulfillment option for this group.")]).describe("ID of the selected fulfillment option for this group.").optional() }).catchall(z.any()).describe("A merchant-generated package/group of line items with fulfillment options.")
+
+export const FulfillmentGroupUpdateRequestSchema = z.object({ "id": z.string().describe("Group identifier for referencing merchant-generated groups in updates.") }).strict()
+
+export const FulfillmentMethodSchema = z.object({ "id": z.string().describe("Unique fulfillment method identifier."), "type": z.enum(["shipping","pickup"]).describe("Fulfillment method type."), "line_item_ids": z.array(z.string()).describe("Line item IDs fulfilled via this method."), "destinations": z.array(z.record(z.any()).and(z.any().superRefine((x, ctx) => {
+    const schemas = [z.record(z.any()).and(z.intersection(z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }), z.object({ "id": z.string().describe("ID specific to this shipping destination.") }))).describe("Shipping destination."), z.object({ "id": z.string().describe("Unique location identifier."), "name": z.string().describe("Location name (e.g., store name)."), "address": z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }).describe("Physical address of the location.").optional() }).catchall(z.any()).describe("A pickup location (retail store, locker, etc.).")];
+    const errors = schemas.reduce<z.ZodError[]>(
+      (errors, schema) =>
+        ((result) =>
+          result.error ? [...errors, result.error] : errors)(
+          schema.safeParse(x),
+        ),
+      [],
+    );
+    const passed = schemas.length - errors.length;
+    if (passed !== 1) {
+      ctx.addIssue(errors.length ? {
+        path: ctx.path,
+        code: "invalid_union",
+        unionErrors: errors,
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      } : {
+        path: ctx.path,
+        code: "custom",
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      });
+    }
+  })).describe("A destination for fulfillment.")).describe("Available destinations. For shipping: addresses. For pickup: retail locations.").optional(), "selected_destination_id": z.union([z.string().describe("ID of the selected destination."), z.null().describe("ID of the selected destination.")]).describe("ID of the selected destination.").optional(), "groups": z.array(z.object({ "id": z.string().describe("Group identifier for referencing merchant-generated groups in updates."), "line_item_ids": z.array(z.string()).describe("Line item IDs included in this group/package."), "options": z.array(z.object({ "id": z.string().describe("Unique fulfillment option identifier."), "title": z.string().describe("Short label (e.g., 'Express Shipping', 'Curbside Pickup')."), "description": z.string().describe("Complete context for buyer decision (e.g., 'Arrives Dec 12-15 via FedEx').").optional(), "carrier": z.string().describe("Carrier name (for shipping).").optional(), "earliest_fulfillment_time": z.string().datetime({ offset: true }).describe("Earliest fulfillment date.").optional(), "latest_fulfillment_time": z.string().datetime({ offset: true }).describe("Latest fulfillment date.").optional(), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Fulfillment option totals breakdown.") }).catchall(z.any()).describe("A fulfillment option within a group (e.g., Standard Shipping $5, Express $15).")).describe("Available fulfillment options for this group.").optional(), "selected_option_id": z.union([z.string().describe("ID of the selected fulfillment option for this group."), z.null().describe("ID of the selected fulfillment option for this group.")]).describe("ID of the selected fulfillment option for this group.").optional() }).catchall(z.any()).describe("A merchant-generated package/group of line items with fulfillment options.")).describe("Fulfillment groups for selecting options. Agent sets selected_option_id on groups to choose shipping method.").optional() }).catchall(z.any()).describe("A fulfillment method (shipping or pickup) with destinations and groups.")
+
+export const FulfillmentMethodCreateRequestSchema = z.object({ "type": z.enum(["shipping","pickup"]).describe("Fulfillment method type."), "line_item_ids": z.array(z.string()).describe("Line item IDs fulfilled via this method.").optional() }).strict()
+
+export const FulfillmentMethodUpdateRequestSchema = z.object({ "id": z.string().describe("Unique fulfillment method identifier."), "line_item_ids": z.array(z.string()).describe("Line item IDs fulfilled via this method.") }).strict()
+
+export const FulfillmentOptionSchema = z.object({ "id": z.string().describe("Unique fulfillment option identifier."), "title": z.string().describe("Short label (e.g., 'Express Shipping', 'Curbside Pickup')."), "description": z.string().describe("Complete context for buyer decision (e.g., 'Arrives Dec 12-15 via FedEx').").optional(), "carrier": z.string().describe("Carrier name (for shipping).").optional(), "earliest_fulfillment_time": z.string().datetime({ offset: true }).describe("Earliest fulfillment date.").optional(), "latest_fulfillment_time": z.string().datetime({ offset: true }).describe("Latest fulfillment date.").optional(), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Fulfillment option totals breakdown.") }).catchall(z.any()).describe("A fulfillment option within a group (e.g., Standard Shipping $5, Express $15).")
+
+export const ItemSchema = z.object({ "id": z.string().describe("Should be recognized by both the Platform, and the Business. For Google it should match the id provided in the \"id\" field in the product feed."), "title": z.string().describe("Product title."), "price": z.number().int().gte(0).describe("Unit price in minor (cents) currency units."), "image_url": z.string().url().describe("Product image URI.").optional() })
+
+export const LineItemSchema = z.object({ "id": z.string(), "item": z.object({ "id": z.string().describe("Should be recognized by both the Platform, and the Business. For Google it should match the id provided in the \"id\" field in the product feed."), "title": z.string().describe("Product title."), "price": z.number().int().gte(0).describe("Unit price in minor (cents) currency units."), "image_url": z.string().url().describe("Product image URI.").optional() }), "quantity": z.number().int().gte(1).describe("Quantity of the item being purchased."), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Line item totals breakdown."), "parent_id": z.string().describe("Parent line item identifier for any nested structures.").optional() }).describe("Line item object. Expected to use the currency of the parent object.")
+
+export const LineItemUpdateRequestSchema = z.object({ "id": z.string().optional(), "parent_id": z.string().describe("Parent line item identifier for any nested structures.").optional() }).strict()
+
+export const LinkSchema = z.object({ "type": z.string().describe("Type of link. Well-known values: `privacy_policy`, `terms_of_service`, `refund_policy`, `shipping_policy`, `faq`. Consumers SHOULD handle unknown values gracefully by displaying them using the `title` field or omitting the link."), "url": z.string().url().describe("The actual URL pointing to the content to be displayed."), "title": z.string().describe("Optional display text for the link. When provided, use this instead of generating from type.").optional() })
+
+export const MerchantFulfillmentConfigSchema = z.object({ "allows_multi_destination": z.object({ "shipping": z.boolean().describe("Multiple shipping destinations allowed.").optional(), "pickup": z.boolean().describe("Multiple pickup locations allowed.").optional() }).strict().describe("Permits multiple destinations per method type.").optional(), "allows_method_combinations": z.array(z.array(z.enum(["shipping","pickup"]))).describe("Allowed method type combinations.").optional() }).describe("Merchant's fulfillment configuration.")
+
+export const MessageSchema = z.record(z.any()).and(z.any().superRefine((x, ctx) => {
+    const schemas = [z.object({ "type": z.literal("error").describe("Message type discriminator."), "code": z.string().describe("Error code. Possible values include: missing, invalid, out_of_stock, payment_declined, requires_sign_in, requires_3ds, requires_identity_linking. Freeform codes also allowed."), "path": z.string().describe("RFC 9535 JSONPath to the component the message refers to (e.g., $.items[1]).").optional(), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain"), "content": z.string().describe("Human-readable message."), "severity": z.enum(["recoverable","requires_buyer_input","requires_buyer_review"]).describe("Declares who resolves this error. 'recoverable': agent can fix via API. 'requires_buyer_input': merchant requires information their API doesn't support collecting programmatically (checkout incomplete). 'requires_buyer_review': buyer must authorize before order placement due to policy, regulatory, or entitlement rules (checkout complete). Errors with 'requires_*' severity contribute to 'status: requires_escalation'.") }), z.object({ "type": z.literal("warning").describe("Message type discriminator."), "path": z.string().describe("JSONPath (RFC 9535) to related field (e.g., $.line_items[0]).").optional(), "code": z.string().describe("Warning code. Machine-readable identifier for the warning type (e.g., final_sale, prop65, fulfillment_changed, age_restricted, etc.)."), "content": z.string().describe("Human-readable warning message that MUST be displayed."), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain") }), z.object({ "type": z.literal("info").describe("Message type discriminator."), "path": z.string().describe("RFC 9535 JSONPath to the component the message refers to.").optional(), "code": z.string().describe("Info code for programmatic handling.").optional(), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain"), "content": z.string().describe("Human-readable message.") })];
+    const errors = schemas.reduce<z.ZodError[]>(
+      (errors, schema) =>
+        ((result) =>
+          result.error ? [...errors, result.error] : errors)(
+          schema.safeParse(x),
+        ),
+      [],
+    );
+    const passed = schemas.length - errors.length;
+    if (passed !== 1) {
+      ctx.addIssue(errors.length ? {
+        path: ctx.path,
+        code: "invalid_union",
+        unionErrors: errors,
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      } : {
+        path: ctx.path,
+        code: "custom",
+        message: "Invalid input: Should pass single schema. Passed " + passed,
+      });
+    }
+  })).describe("Container for error, warning, or info messages.")
+
+export const MessageErrorSchema = z.object({ "type": z.literal("error").describe("Message type discriminator."), "code": z.string().describe("Error code. Possible values include: missing, invalid, out_of_stock, payment_declined, requires_sign_in, requires_3ds, requires_identity_linking. Freeform codes also allowed."), "path": z.string().describe("RFC 9535 JSONPath to the component the message refers to (e.g., $.items[1]).").optional(), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain"), "content": z.string().describe("Human-readable message."), "severity": z.enum(["recoverable","requires_buyer_input","requires_buyer_review"]).describe("Declares who resolves this error. 'recoverable': agent can fix via API. 'requires_buyer_input': merchant requires information their API doesn't support collecting programmatically (checkout incomplete). 'requires_buyer_review': buyer must authorize before order placement due to policy, regulatory, or entitlement rules (checkout complete). Errors with 'requires_*' severity contribute to 'status: requires_escalation'.") })
+
+export const MessageInfoSchema = z.object({ "type": z.literal("info").describe("Message type discriminator."), "path": z.string().describe("RFC 9535 JSONPath to the component the message refers to.").optional(), "code": z.string().describe("Info code for programmatic handling.").optional(), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain"), "content": z.string().describe("Human-readable message.") })
+
+export const MessageWarningSchema = z.object({ "type": z.literal("warning").describe("Message type discriminator."), "path": z.string().describe("JSONPath (RFC 9535) to related field (e.g., $.line_items[0]).").optional(), "code": z.string().describe("Warning code. Machine-readable identifier for the warning type (e.g., final_sale, prop65, fulfillment_changed, age_restricted, etc.)."), "content": z.string().describe("Human-readable warning message that MUST be displayed."), "content_type": z.enum(["plain","markdown"]).describe("Content format, default = plain.").default("plain") })
+
+export const OrderConfirmationSchema = z.object({ "id": z.string().describe("Unique order identifier."), "permalink_url": z.string().url().describe("Permalink to access the order on merchant site.") }).describe("Order details available at the time of checkout completion.")
+
+export const OrderLineItemSchema = z.object({ "id": z.string().describe("Line item identifier."), "item": z.object({ "id": z.string().describe("Should be recognized by both the Platform, and the Business. For Google it should match the id provided in the \"id\" field in the product feed."), "title": z.string().describe("Product title."), "price": z.number().int().gte(0).describe("Unit price in minor (cents) currency units."), "image_url": z.string().url().describe("Product image URI.").optional() }).describe("Product data (id, title, price, image_url)."), "quantity": z.object({ "total": z.number().int().gte(0).describe("Current total quantity."), "fulfilled": z.number().int().gte(0).describe("Quantity fulfilled (sum from fulfillment events).") }).describe("Quantity tracking. Both total and fulfilled are derived from events."), "totals": z.array(z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })).describe("Line item totals breakdown."), "status": z.enum(["processing","partial","fulfilled"]).describe("Derived status: fulfilled if quantity.fulfilled == quantity.total, partial if quantity.fulfilled > 0, otherwise processing."), "parent_id": z.string().describe("Parent line item identifier for any nested structures.").optional() })
+
+export const PaymentCredentialSchema = z.object({ "type": z.string().describe("The credential type discriminator. Specific schemas will constrain this to a constant value.") }).catchall(z.any()).describe("The base definition for any payment credential. Handlers define specific credential types.")
+
+export const PaymentIdentitySchema = z.object({ "access_token": z.string().describe("Unique identifier for this participant, obtained during onboarding with the tokenizer.") }).describe("Identity of a participant for token binding. The access_token uniquely identifies the participant who tokens should be bound to.")
+
+export const PaymentInstrumentSchema = z.object({ "id": z.string().describe("A unique identifier for this instrument instance, assigned by the platform."), "handler_id": z.string().describe("The unique identifier for the handler instance that produced this instrument. This corresponds to the 'id' field in the Payment Handler definition."), "type": z.string().describe("The broad category of the instrument (e.g., 'card', 'tokenized_card'). Specific schemas will constrain this to a constant value."), "billing_address": z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }).describe("The billing address associated with this payment method.").optional(), "credential": z.object({ "type": z.string().describe("The credential type discriminator. Specific schemas will constrain this to a constant value.") }).catchall(z.any()).describe("The base definition for any payment credential. Handlers define specific credential types.").optional(), "display": z.record(z.any()).describe("Display information for this payment instrument. Each payment instrument schema defines its specific display properties, as outlined by the payment handler.").optional() }).catchall(z.any()).describe("The base definition for any payment instrument. It links the instrument to a specific payment handler.")
+
+export const PlatformFulfillmentConfigSchema = z.object({ "supports_multi_group": z.boolean().describe("Enables multiple groups per method.").default(false) }).describe("Platform's fulfillment configuration.")
+
+export const PostalAddressSchema = z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() })
+
+export const RetailLocationSchema = z.object({ "id": z.string().describe("Unique location identifier."), "name": z.string().describe("Location name (e.g., store name)."), "address": z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }).describe("Physical address of the location.").optional() }).catchall(z.any()).describe("A pickup location (retail store, locker, etc.).")
+
+export const ShippingDestinationSchema = z.record(z.any()).and(z.intersection(z.object({ "extended_address": z.string().describe("An address extension such as an apartment number, C/O or alternative name.").optional(), "street_address": z.string().describe("The street address.").optional(), "address_locality": z.string().describe("The locality in which the street address is, and which is in the region. For example, Mountain View.").optional(), "address_region": z.string().describe("The region in which the locality is, and which is in the country. Required for applicable countries (i.e. state in US, province in CA). For example, California or another appropriate first-level Administrative division.").optional(), "address_country": z.string().describe("The country. Recommended to be in 2-letter ISO 3166-1 alpha-2 format, for example \"US\". For backward compatibility, a 3-letter ISO 3166-1 alpha-3 country code such as \"SGP\" or a full country name such as \"Singapore\" can also be used.").optional(), "postal_code": z.string().describe("The postal code. For example, 94043.").optional(), "first_name": z.string().describe("Optional. First name of the contact associated with the address.").optional(), "last_name": z.string().describe("Optional. Last name of the contact associated with the address.").optional(), "phone_number": z.string().describe("Optional. Phone number of the contact associated with the address.").optional() }), z.object({ "id": z.string().describe("ID specific to this shipping destination.") }))).describe("Shipping destination.")
+
+export const TokenCredentialSchema = z.intersection(z.object({ "type": z.string().describe("The credential type discriminator. Specific schemas will constrain this to a constant value.") }).catchall(z.any()).describe("The base definition for any payment credential. Handlers define specific credential types."), z.object({ "type": z.string().describe("The specific type of token produced by the handler (e.g., 'stripe_token')."), "token": z.string().describe("The token value.") })).describe("Base token credential schema. Concrete payment handlers may extend this schema with additional fields and define their own constraints.")
+
+export const TotalSchema = z.object({ "type": z.enum(["items_discount","subtotal","discount","fulfillment","tax","fee","total"]).describe("Type of total categorization."), "display_text": z.string().describe("Text to display against the amount. Should reflect appropriate method (e.g., 'Shipping', 'Delivery').").optional(), "amount": z.number().int().gte(0).describe("If type == total, sums subtotal - discount + fulfillment + tax + fee. Should be >= 0. Amount in minor (cents) currency units.") })
+
+export const EmbeddedConfigSchema = z.object({ "delegate": z.array(z.string()).describe("Delegations the business allows. At service-level, declares available delegations. In checkout responses, confirms accepted delegations for this session.").optional() }).describe("Per-checkout configuration for embedded transport binding. Allows businesses to vary ECP availability and delegations based on cart contents, agent authorization, or policy.")
+
+export const UcpSchema = z.any().describe("Protocol metadata for discovery profiles and responses. Uses slim schema pattern with context-specific required fields.")
