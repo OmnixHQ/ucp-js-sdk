@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <b>JavaScript library for the Universal Commerce Protocol (UCP).</b>
+  <b>Runtime-validated Zod schemas and TypeScript types for the Universal Commerce Protocol (UCP).</b>
 </p>
 
 [![npm version](https://img.shields.io/npm/v/@omnixhq/ucp-js-sdk.svg)](https://www.npmjs.com/package/@omnixhq/ucp-js-sdk)
@@ -29,47 +29,121 @@
 
 ## Overview
 
-This repository contains the JavaScript SDK for the
-[Universal Commerce Protocol (UCP)](https://ucp.dev). It provides TypeScript
-types and [Zod](https://zod.dev/) schemas for UCP models, making it easy to
-build UCP-compliant applications in JavaScript and TypeScript.
+The JavaScript SDK for the [Universal Commerce Protocol (UCP)](https://ucp.dev).
+Auto-generated from the UCP spec with full coverage — 100 schemas including
+checkout, orders, payments, fulfillment, discovery profiles, and all inline enums.
+
+**Key features:**
+
+- 100% spec coverage — every schema, `$def`, request variant, and enum
+- Zero hand-authored schemas — fully generated from the UCP JSON Schema spec
+- Runtime validation with [Zod](https://zod.dev/) — `.parse()` and `.safeParse()`
+- Extension-safe — `additionalProperties: true` schemas use `.passthrough()` to preserve extension data
+- Dual ESM/CJS build — works everywhere
 
 ## Installation
 
-To install the SDK in your project, run:
-
 ```bash
+# Stable (current UCP release)
 npm install @omnixhq/ucp-js-sdk
 ```
 
+### Draft builds
+
+To build against upcoming UCP spec changes (Catalog capability, Order updates, etc.),
+install the `next` tag:
+
+```bash
+# Draft (latest UCP spec main branch)
+npm install @omnixhq/ucp-js-sdk@next
+```
+
+Draft builds are published automatically when the UCP spec's `main` branch changes.
+They use prerelease versions (e.g., `1.0.2-draft.5.1`) and won't affect your
+stable installs. Switch back anytime with `npm install @omnixhq/ucp-js-sdk@latest`.
+
 ## Usage
 
-The SDK provides Zod schemas and TypeScript types for every UCP entity. Use schemas
-to validate data at runtime and get full type safety throughout your application:
+### Validate a checkout request
 
 ```typescript
-import { ExtendedCheckoutCreateRequestSchema } from "@omnixhq/ucp-js-sdk";
+import {
+  CheckoutCreateRequestSchema,
+  type CheckoutCreateRequest,
+} from "@omnixhq/ucp-js-sdk";
 
-const result = ExtendedCheckoutCreateRequestSchema.safeParse(req.body);
+const result = CheckoutCreateRequestSchema.safeParse(req.body);
 if (!result.success) {
   return res.status(400).json({ error: result.error.flatten() });
 }
-// result.data is fully typed
+const checkout: CheckoutCreateRequest = result.data;
 ```
 
-See [docs/examples.md](docs/examples.md) for more examples covering checkout
-validation, payment handlers, discovery profiles, order webhooks, and fulfillment.
+### Validate a checkout response (with extensions)
+
+```typescript
+import { CheckoutSchema } from "@omnixhq/ucp-js-sdk";
+
+const checkout = CheckoutSchema.parse(apiResponse);
+// Extension data is preserved (fulfillment, discounts, ap2, etc.)
+console.log(checkout.fulfillment);
+console.log(checkout.discounts);
+```
+
+### Validate a discovery profile
+
+```typescript
+import { UcpDiscoveryProfileSchema } from "@omnixhq/ucp-js-sdk";
+
+const profile = await fetch(
+  "https://platform.example.com/.well-known/ucp"
+).then((r) => r.json());
+const discovery = UcpDiscoveryProfileSchema.parse(profile);
+
+// discovery.ucp.services        — Record<string, Service[]>
+// discovery.ucp.capabilities    — Record<string, Capability[]>
+// discovery.ucp.payment_handlers — Record<string, PaymentHandler[]>
+// discovery.signing_keys        — JWK signing keys
+```
+
+### Use standalone enums
+
+```typescript
+import {
+  CheckoutStatusEnumSchema,
+  TotalTypeEnumSchema,
+  ServiceBaseTransportEnumSchema,
+} from "@omnixhq/ucp-js-sdk";
+
+// Type-safe enum values
+const status = CheckoutStatusEnumSchema.parse("incomplete");
+const transport = ServiceBaseTransportEnumSchema.parse("mcp");
+```
+
+See [docs/examples.md](docs/examples.md) for more examples covering payment
+handlers, order webhooks, and fulfillment.
+
+## What's included
+
+| Category          | Count | Examples                                                     |
+| ----------------- | ----- | ------------------------------------------------------------ |
+| Top-level schemas | 46    | `CheckoutSchema`, `OrderSchema`, `PaymentSchema`             |
+| `$defs` exports   | 39    | `UcpEntitySchema`, `PaymentHandlerResponseSchema`            |
+| Request variants  | 7     | `CheckoutCreateRequestSchema`, `CheckoutUpdateRequestSchema` |
+| Inline enums      | 15    | `CheckoutStatusEnumSchema`, `TotalTypeEnumSchema`            |
+| Consumer aliases  | ~15   | `UcpDiscoveryProfileSchema`, `CheckoutResponseStatusSchema`  |
+
+All schemas have corresponding TypeScript types exported (e.g., `Checkout`, `Order`, `UcpDiscoveryProfile`).
 
 ## Development
 
 ### Prerequisites
 
-This project uses `npm` for package management and `typescript` for building.
+Node.js 22+ and npm.
 
 ### Generating schemas
 
-`src/spec_generated.ts` is auto-generated from the UCP spec. The generator
-downloads the spec tarball directly — no local clone required:
+`src/spec_generated.ts` is auto-generated from the UCP spec:
 
 ```bash
 npm run generate                          # default release (v2026-01-23)
@@ -81,27 +155,31 @@ npm run generate -- /path/to/ucp/source   # local spec clone
 
 ### Verifying schema coverage
 
-Check that `spec_generated.ts` exports exactly the schemas present in the spec —
-no missing, no undocumented extras:
-
 ```bash
 npm run verify:schemas                          # default release
 npm run verify:schemas -- --release v2026-01-24 # specific release
 npm run verify:schemas -- --branch main         # latest on a branch
-npm run verify:schemas -- /path/to/ucp/source   # local clone
 ```
 
-This runs automatically in CI before every build. See
-[docs/schema-verification.md](docs/schema-verification.md) for the full
-reference — output format, upgrade workflow, and skipped schemas.
+Runs automatically in CI. See [docs/schema-verification.md](docs/schema-verification.md)
+for the full reference.
 
 ### Building
 
-To build the project for both CommonJS and ESM:
-
 ```bash
-npm run build
+npm run build      # tsdown → dual ESM (.mjs) + CJS (.cjs)
+npm run typecheck  # tsc --noEmit
+npm run lint       # eslint
+npm run format     # prettier
 ```
+
+### Draft branch workflow
+
+The `draft` branch tracks the latest UCP spec `main` for upcoming features:
+
+- **Auto-regeneration**: every Monday at 09:00 UTC (or manual trigger via Actions)
+- **Auto-publish**: push to `draft` → publishes `X.Y.Z-draft.N` with npm `next` tag
+- **Promotion**: when UCP cuts a stable release, merge `draft` → `main` → release-please handles the rest
 
 ## Contributing
 

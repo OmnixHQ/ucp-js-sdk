@@ -47,7 +47,7 @@ jobs:
         run: npm run format:check
 
       - name: Verify schema coverage
-        run: npm run verify:schemas
+        run: npm run verify:schemas -- --branch main
 
       - name: Build
         run: npm run build
