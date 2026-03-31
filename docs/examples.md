@@ -6,56 +6,41 @@ Each schema serves as both a **runtime validator** (Zod) and a **TypeScript type
 get validation errors at the boundary and full autocomplete/type safety throughout your
 application.
 
-## 1. Validate a checkout payload (merchant server)
+## 1. Validate a checkout create request
 
 ```typescript
-import { ExtendedCheckoutCreateRequestSchema } from "@omnixhq/ucp-js-sdk";
+import { CheckoutCreateRequestSchema } from "@omnixhq/ucp-js-sdk";
 
-// Express route handler
 app.post("/checkout", async (req, res) => {
-  const result = ExtendedCheckoutCreateRequestSchema.safeParse(req.body);
+  const result = CheckoutCreateRequestSchema.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({ error: result.error.flatten() });
   }
-  const checkout = result.data; // fully typed: ExtendedCheckoutCreateRequest
-  // ...create checkout in your system
+  const checkout = result.data; // fully typed: CheckoutCreateRequest
 });
 ```
 
-## 2. Type-safe checkout response handling (storefront / headless UI)
+## 2. Type-safe checkout response handling
 
 ```typescript
-import {
-  ExtendedCheckoutResponseSchema,
-  CheckoutResponseStatus,
-} from "@omnixhq/ucp-js-sdk";
+import { CheckoutSchema, CheckoutStatusEnumSchema } from "@omnixhq/ucp-js-sdk";
 
 const raw = await fetch("/api/checkout/abc123").then((r) => r.json());
-const checkout = ExtendedCheckoutResponseSchema.parse(raw);
+const checkout = CheckoutSchema.parse(raw);
 
-// TypeScript knows checkout.status is CheckoutResponseStatus
+// Extension data is preserved (fulfillment, discounts, ap2, etc.)
 if (checkout.status === "ready_for_complete") {
   showConfirmButton();
 }
 ```
 
-## 3. Build a payment handler (implementing UCP payment flow)
+## 3. Validate payment handler responses
 
 ```typescript
-import {
-  PaymentHandlerResponseSchema,
-  ExtendedPaymentCredentialSchema,
-} from "@omnixhq/ucp-js-sdk";
+import { PaymentHandlerResponseSchema } from "@omnixhq/ucp-js-sdk";
 
-function handlePayment(credential: unknown) {
-  const parsed = ExtendedPaymentCredentialSchema.parse(credential);
-  // parsed.token is available (SDK extension field)
-  const response = {
-    status: "success",
-    transaction_id: "txn_123",
-  };
-  return PaymentHandlerResponseSchema.parse(response);
-}
+const handler = PaymentHandlerResponseSchema.parse(apiResponse);
+// handler.version, handler.config, etc. — fully typed
 ```
 
 ## 4. Validate a UCP discovery profile
@@ -74,7 +59,7 @@ const discovery = UcpDiscoveryProfileSchema.parse(profile);
 // discovery.signing_keys        — typed array of JWK signing keys
 ```
 
-## 5. Order update webhook validation
+## 5. Order webhook validation
 
 ```typescript
 import { OrderSchema } from "@omnixhq/ucp-js-sdk";
@@ -82,26 +67,37 @@ import { OrderSchema } from "@omnixhq/ucp-js-sdk";
 app.post("/webhooks/order", (req, res) => {
   const order = OrderSchema.parse(req.body);
   // order is fully typed with all UCP Order fields
-  console.log(order.id, order.status);
+  console.log(order.id, order.line_items);
 });
 ```
 
-## 6. Fulfillment method selection (with extension fields)
+## 6. Use standalone enums for type safety
 
 ```typescript
-import { ExtendedCheckoutUpdateRequestSchema } from "@omnixhq/ucp-js-sdk";
+import {
+  CheckoutStatusEnumSchema,
+  type CheckoutStatusEnum,
+  TotalTypeEnumSchema,
+  ServiceBaseTransportEnumSchema,
+  MessageErrorSeverityEnumSchema,
+} from "@omnixhq/ucp-js-sdk";
 
-const update = ExtendedCheckoutUpdateRequestSchema.parse({
-  fulfillment: {
-    methods: [
-      {
-        id: "method_1",
-        type: "shipping",
-        line_item_ids: ["li_abc"],
-        selected_destination_id: "addr_xyz",
-      },
-    ],
+// Parse and validate enum values
+const status = CheckoutStatusEnumSchema.parse("incomplete");
+const transport = ServiceBaseTransportEnumSchema.parse("mcp");
+
+// Types are exported alongside schemas
+const current: CheckoutStatusEnum = "ready_for_complete";
+```
+
+## 7. Update a checkout (fulfillment + discounts)
+
+```typescript
+import { CheckoutUpdateRequestSchema } from "@omnixhq/ucp-js-sdk";
+
+const update = CheckoutUpdateRequestSchema.parse({
+  buyer: {
+    email: "jane@example.com",
   },
-  discounts: { codes: ["SAVE10"] },
 });
 ```
