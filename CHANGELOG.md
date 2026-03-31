@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/OmnixHQ/ucp-js-sdk/compare/v1.0.2...v1.1.0) (2026-03-31)
+
+
+### Features
+
+* draft spec support with npm next tag publishing ([#21](https://github.com/OmnixHQ/ucp-js-sdk/issues/21)) ([6cf8a27](https://github.com/OmnixHQ/ucp-js-sdk/commit/6cf8a274141b37f41667294719ac52ec818dcfb1))
+
+
+### Documentation
+
+* update README, fix draft CI verify:schemas ([#22](https://github.com/OmnixHQ/ucp-js-sdk/issues/22)) ([d436f98](https://github.com/OmnixHQ/ucp-js-sdk/commit/d436f982c2d57433100cd5e61302e8c7a54dc884))
+
+
+### Maintenance
+
+* add Google site verification file ([#17](https://github.com/OmnixHQ/ucp-js-sdk/issues/17)) ([ce30977](https://github.com/OmnixHQ/ucp-js-sdk/commit/ce3097759bc1b44d65fcbdacbe24cdedb30d0ff8))
+* remove Google site verification file ([#19](https://github.com/OmnixHQ/ucp-js-sdk/issues/19)) ([db0af2f](https://github.com/OmnixHQ/ucp-js-sdk/commit/db0af2f03dcea0d2841b9c422161e522d169039f))
+
 ## [1.0.2](https://github.com/OmnixHQ/ucp-js-sdk/compare/v1.0.1...v1.0.2) (2026-03-31)
 
 
