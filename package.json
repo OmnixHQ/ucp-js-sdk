@@ -1,6 +1,6 @@
 {
   "name": "@omnixhq/ucp-js-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "UCP spec types and Zod schemas",
   "type": "commonjs",
   "license": "Apache-2.0",

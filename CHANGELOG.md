@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/OmnixHQ/ucp-js-sdk/compare/v1.0.1...v1.0.2) (2026-03-31)
+
+
+### Bug Fixes
+
+* generate discovery profile schemas instead of hand-authoring ([#15](https://github.com/OmnixHQ/ucp-js-sdk/issues/15)) ([b3dc3f6](https://github.com/OmnixHQ/ucp-js-sdk/commit/b3dc3f63282280d292febbc7c9e496ae85ee7a71))
+
 ## [1.0.1](https://github.com/OmnixHQ/ucp-js-sdk/compare/v1.0.0...v1.0.1) (2026-03-30)
 
 
