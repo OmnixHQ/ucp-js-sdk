@@ -68,8 +68,10 @@ const profile = await fetch(
 ).then((r) => r.json());
 const discovery = UcpDiscoveryProfileSchema.parse(profile);
 
-// discovery.ucp.payment_handlers — typed array of PaymentHandlerResponse
-// discovery.ucp.capabilities    — typed record of UcpEntity arrays
+// discovery.ucp.payment_handlers — typed record of payment handler arrays
+// discovery.ucp.capabilities    — typed record of capability arrays
+// discovery.ucp.services        — typed record of service arrays
+// discovery.signing_keys        — typed array of JWK signing keys
 ```
 
 ## 5. Order update webhook validation

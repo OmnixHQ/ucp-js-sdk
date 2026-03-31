@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import {
   buildRequestJson,
   discoverBaseSchemas,
+  discoverEnums,
   hasUcpRequestAnnotations,
   parseArgs,
   REQUEST_OPERATIONS,
@@ -64,6 +65,9 @@ function makeResolver(specDir) {
     },
     read(file) {
       let url = file.url;
+      // Cross-directory $refs (e.g. discovery/ → ../schemas/ucp.json) cause
+      // $RefParser to double the /schemas/ segment when resolving relative
+      // refs against the parent's $id. Normalize before lookup.
       if (!urlMap.has(url)) {
         url = url.replace(
           "https://ucp.dev/schemas/schemas/",
@@ -106,30 +110,116 @@ function replaceHashRef(node, topLevel) {
 }
 
 /**
- * Copies the spec directory to a temp location, resolving `$ref: "#"` inside
- * `$defs` to eliminate circular self-references before $RefParser processes them.
+ * Builds a lookup from relative file paths to canonical $id URLs.
+ * E.g. "schemas/ucp.json" → "https://ucp.dev/schemas/ucp.json"
+ */
+function buildRelativeToIdMap(specDir) {
+  const map = new Map();
+  function scan(dir, relBase) {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      const rel = path.join(relBase, entry.name);
+      if (entry.isDirectory()) {
+        scan(full, rel);
+        continue;
+      }
+      if (!entry.name.endsWith(".json")) continue;
+      try {
+        const raw = JSON.parse(fs.readFileSync(full, "utf8"));
+        if (raw.$id) map.set(rel, raw.$id);
+      } catch {
+        /* skip */
+      }
+    }
+  }
+  scan(path.join(specDir, "schemas"), "schemas");
+  scan(path.join(specDir, "discovery"), "discovery");
+  scan(path.join(specDir, "services"), "services");
+  return map;
+}
+
+/**
+ * Rewrites relative cross-directory $refs to absolute $id-based URLs.
+ * E.g. "../schemas/ucp.json#/$defs/base" → "https://ucp.dev/schemas/ucp.json#/$defs/base"
+ *
+ * This prevents $RefParser from producing doubled URL segments when
+ * resolving relative $refs across directories with different $id bases.
+ */
+function rewriteRelativeRefs(node, fileRelPath, relToIdMap) {
+  if (!node || typeof node !== "object") return node;
+  if (Array.isArray(node)) {
+    return node.map((item) =>
+      rewriteRelativeRefs(item, fileRelPath, relToIdMap)
+    );
+  }
+
+  if (typeof node.$ref === "string" && !node.$ref.startsWith("#")) {
+    const [refPath, fragment] = node.$ref.split("#");
+    // Resolve the relative path against the file's directory
+    const fileDir = path.dirname(fileRelPath);
+    const resolved = path.normalize(path.join(fileDir, refPath));
+    const canonicalId = relToIdMap.get(resolved);
+    if (canonicalId) {
+      return {
+        ...node,
+        $ref: fragment ? `${canonicalId}#${fragment}` : canonicalId,
+      };
+    }
+  }
+
+  const result = {};
+  for (const [k, v] of Object.entries(node)) {
+    result[k] = rewriteRelativeRefs(v, fileRelPath, relToIdMap);
+  }
+  return result;
+}
+
+/**
+ * Copies the spec directory to a temp location, applying two pre-processing
+ * fixes before $RefParser runs:
+ *
+ * 1. Resolves `$ref: "#"` inside $defs (circular self-references).
+ * 2. Rewrites relative cross-directory $refs to absolute $id URLs so
+ *    $RefParser resolves them against the canonical identity.
  */
 function prepareSpecDir(specDir) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "ucp-prepared-"));
+  const relToIdMap = buildRelativeToIdMap(specDir);
 
-  function copyDir(src, dest) {
+  function copyDir(src, dest, relBase) {
     fs.mkdirSync(dest, { recursive: true });
     for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
       const srcPath = path.join(src, entry.name);
       const destPath = path.join(dest, entry.name);
+      const relPath = path.join(relBase, entry.name);
       if (entry.isDirectory()) {
-        copyDir(srcPath, destPath);
+        copyDir(srcPath, destPath, relPath);
       } else if (entry.name.endsWith(".json")) {
         try {
-          const schema = JSON.parse(fs.readFileSync(srcPath, "utf8"));
+          let schema = JSON.parse(fs.readFileSync(srcPath, "utf8"));
+          let modified = false;
+
+          // Fix 1: resolve $ref: "#" inside $defs
           if (schema.$defs && hasSelfRef(schema.$defs)) {
             const { $defs, $schema: _s, $id: _i, ...topLevel } = schema;
             const fixedDefs = {};
             for (const [defName, defSchema] of Object.entries($defs)) {
               fixedDefs[defName] = replaceHashRef(defSchema, topLevel);
             }
-            const fixedSchema = { ...schema, $defs: fixedDefs };
-            fs.writeFileSync(destPath, JSON.stringify(fixedSchema, null, 2));
+            schema = { ...schema, $defs: fixedDefs };
+            modified = true;
+          }
+
+          // Fix 2: rewrite relative cross-directory $refs to absolute $id URLs
+          const rewritten = rewriteRelativeRefs(schema, relPath, relToIdMap);
+          if (JSON.stringify(rewritten) !== JSON.stringify(schema)) {
+            schema = rewritten;
+            modified = true;
+          }
+
+          if (modified) {
+            fs.writeFileSync(destPath, JSON.stringify(schema, null, 2));
           } else {
             fs.copyFileSync(srcPath, destPath);
           }
@@ -148,7 +238,7 @@ function prepareSpecDir(specDir) {
     return Object.values(node).some((v) => hasSelfRef(v));
   }
 
-  copyDir(specDir, tmpDir);
+  copyDir(specDir, tmpDir, "");
   return tmpDir;
 }
 
@@ -197,12 +287,9 @@ function normalizeSchema(schema, visited = new WeakSet()) {
     }
   }
 
-  // Replace additionalProperties: true with nothing (it's the default)
-  // so json-schema-to-zod doesn't generate .catchall(z.any())
-  if (result.additionalProperties === true) {
-    const { additionalProperties: _, ...rest } = result;
-    result = rest;
-  }
+  // additionalProperties: true → json-schema-to-zod emits .catchall(z.any())
+  // which postProcessZodCode converts to .passthrough(). This preserves
+  // extension data (fulfillment, discounts, etc.) that the spec allows.
 
   // Recurse into subschemas
   if (result.properties) {
@@ -489,6 +576,25 @@ async function generate() {
     } catch (err) {
       console.error(`  ERROR ${name}: ${err.message}`);
       errors++;
+    }
+  }
+
+  // --- Inline enum extraction ---
+  console.log("\nExtracting inline enums...\n");
+  for (const { name, raw } of baseSchemas) {
+    const baseName = name.replace(/Schema$/, "");
+    const enums = discoverEnums(raw, baseName);
+    for (const { exportName, values, description } of enums) {
+      const valuesLiteral = values.map((v) => JSON.stringify(v)).join(",");
+      const descChain = description
+        ? `.describe(${JSON.stringify(description)})`
+        : "";
+      lines.push(
+        `export const ${exportName} = z.enum([${valuesLiteral}])${descChain};`
+      );
+      const typeName = exportName.replace(/Schema$/, "");
+      lines.push(`export type ${typeName} = z.infer<typeof ${exportName}>;`, "");
+      console.log(`  OK    ${exportName} (enum from ${name})`);
     }
   }
 

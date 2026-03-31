@@ -22,6 +22,7 @@ import { fileURLToPath } from "node:url";
 import {
   detectRequestOperations,
   discoverBaseSchemas,
+  discoverEnums,
   parseArgs,
   resolveSpecDir,
   toPascalCase,
@@ -57,9 +58,16 @@ function buildExpectedNames(specDir) {
   const names = new Set();
 
   for (const { name, raw } of discoverBaseSchemas(specDir)) {
+    const baseName = name.replace(/Schema$/, "");
+
+    // Inline enum exports apply to all schemas (including $defs-only)
+    const enums = discoverEnums(raw, baseName);
+    for (const { exportName } of enums) {
+      names.add(exportName);
+    }
+
     // $defs-only schemas produce per-$def exports, not a single top-level
     if (isDefsOnlySchema(raw)) {
-      const baseName = name.replace(/Schema$/, "");
       for (const defName of Object.keys(raw.$defs || {})) {
         if (shouldSkipDef(defName)) continue;
         names.add(deriveDefExportName(baseName, defName));
@@ -71,7 +79,6 @@ function buildExpectedNames(specDir) {
 
     // Add request variant names derived from ucp_request annotations
     const ops = detectRequestOperations(raw);
-    const baseName = name.replace(/Schema$/, "");
     for (const op of ops) {
       names.add(`${baseName}${toPascalCase(op)}RequestSchema`);
     }
