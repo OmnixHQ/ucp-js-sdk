@@ -1,0 +1,62 @@
+name: Draft Publish
+
+on:
+  push:
+    branches: [draft]
+
+concurrency:
+  group: draft-publish
+  cancel-in-progress: true
+
+jobs:
+  publish-next:
+    name: Publish to npm (next)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Regenerate from spec main
+        run: npm run generate -- --branch main
+
+      - name: Compute draft version
+        id: version
+        run: |
+          BASE=$(node -p "require('./package.json').version")
+          # Use short SHA + run number for unique prerelease ID
+          DRAFT="${BASE}-draft.${GITHUB_RUN_NUMBER}"
+          echo "version=${DRAFT}" >> "$GITHUB_OUTPUT"
+          npm version "${DRAFT}" --no-git-tag-version
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate exports
+        run: npm run check:exports
+
+      - name: Validate package
+        run: npm run check:publish
+
+      - name: Publish to npm (next tag)
+        run: npm publish --provenance --access public --tag next
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
