@@ -1,0 +1,105 @@
+name: Check UCP Spec Release
+
+on:
+  schedule:
+    # Every day at 08:00 UTC
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-release:
+    name: Detect new UCP spec release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get current SDK default release
+        id: current
+        run: |
+          CURRENT=$(grep 'DEFAULT_RELEASE' scripts/spec-utils.mjs | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "release=${CURRENT}" >> "$GITHUB_OUTPUT"
+          echo "Current SDK default: ${CURRENT}"
+
+      - name: Get latest UCP spec release
+        id: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST=$(gh release view --repo Universal-Commerce-Protocol/ucp --json tagName --jq '.tagName' 2>/dev/null || echo "")
+          if [ -z "$LATEST" ]; then
+            echo "Could not fetch latest release"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "release=${LATEST}" >> "$GITHUB_OUTPUT"
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "Latest UCP spec: ${LATEST}"
+
+      - name: Compare versions
+        id: compare
+        if: steps.latest.outputs.found == 'true'
+        env:
+          CURRENT: ${{ steps.current.outputs.release }}
+          LATEST: ${{ steps.latest.outputs.release }}
+        run: |
+          if [ "$CURRENT" = "$LATEST" ]; then
+            echo "SDK is up to date with UCP spec ${CURRENT}"
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New UCP spec release detected: ${LATEST} (SDK has ${CURRENT})"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create upgrade issue
+        if: steps.compare.outputs.new_release == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT: ${{ steps.current.outputs.release }}
+          LATEST: ${{ steps.latest.outputs.release }}
+        run: |
+          # Check if issue already exists
+          EXISTING=$(gh issue list --label "spec-upgrade" --state open --json number --jq 'length')
+          if [ "$EXISTING" -gt "0" ]; then
+            echo "Upgrade issue already exists, skipping"
+            exit 0
+          fi
+
+          gh issue create \
+            --title "feat: upgrade to UCP spec ${LATEST}" \
+            --label "spec-upgrade" \
+            --body "$(cat <<EOF
+          ## New UCP spec release detected
+
+          | | Version |
+          |---|---|
+          | Current SDK | \`${CURRENT}\` |
+          | Latest spec | \`${LATEST}\` |
+
+          ## Upgrade steps
+
+          \`\`\`bash
+          git checkout main && git pull
+          git checkout -b chore/spec-upgrade-${LATEST}
+
+          # Update DEFAULT_RELEASE in scripts/spec-utils.mjs to "${LATEST}"
+          npm run generate -- --release ${LATEST}
+          npm run verify:schemas -- --release ${LATEST}
+
+          git add scripts/spec-utils.mjs src/spec_generated.ts
+          git commit -m "feat: upgrade to UCP spec ${LATEST}"
+          git push -u origin chore/spec-upgrade-${LATEST}
+          gh pr create
+          \`\`\`
+
+          After merge:
+          1. release-please bumps version and publishes to \`latest\`
+          2. Rebase \`draft\` on new \`main\`
+
+          _This issue was created automatically by the spec release check workflow._
+          EOF
+          )"
