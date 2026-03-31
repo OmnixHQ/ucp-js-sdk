@@ -76,6 +76,7 @@ app.post("/webhooks/order", (req, res) => {
 ```typescript
 import {
   CheckoutStatusEnumSchema,
+  type CheckoutStatusEnum,
   TotalTypeEnumSchema,
   ServiceBaseTransportEnumSchema,
   MessageErrorSeverityEnumSchema,
@@ -85,9 +86,8 @@ import {
 const status = CheckoutStatusEnumSchema.parse("incomplete");
 const transport = ServiceBaseTransportEnumSchema.parse("mcp");
 
-// Use as TypeScript types
-type CheckoutStatus = z.infer<typeof CheckoutStatusEnumSchema>;
-// "incomplete" | "requires_escalation" | "ready_for_complete" | ...
+// Types are exported alongside schemas
+const current: CheckoutStatusEnum = "ready_for_complete";
 ```
 
 ## 7. Update a checkout (fulfillment + discounts)

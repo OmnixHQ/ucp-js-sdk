@@ -36,7 +36,7 @@ checkout, orders, payments, fulfillment, discovery profiles, and all inline enum
 **Key features:**
 
 - 100% spec coverage — every schema, `$def`, request variant, and enum
-- Zero hand-authored schemas — fully generated from the UCP JSON Schema spec
+- Fully generated from the UCP JSON Schema spec — consumer aliases in `extensions.ts`
 - Runtime validation with [Zod](https://zod.dev/) — `.parse()` and `.safeParse()`
 - Extension-safe — `additionalProperties: true` schemas use `.passthrough()` to preserve extension data
 - Dual ESM/CJS build — works everywhere
@@ -79,15 +79,15 @@ if (!result.success) {
 const checkout: CheckoutCreateRequest = result.data;
 ```
 
-### Validate a checkout response (with extensions)
+### Validate a checkout response
 
 ```typescript
 import { CheckoutSchema } from "@omnixhq/ucp-js-sdk";
 
 const checkout = CheckoutSchema.parse(apiResponse);
-// Extension data is preserved (fulfillment, discounts, ap2, etc.)
-console.log(checkout.fulfillment);
-console.log(checkout.discounts);
+// Typed fields: checkout.id, checkout.status, checkout.line_items, etc.
+// Extension data (fulfillment, discounts, ap2) is preserved at runtime
+// via .passthrough() but not statically typed on the base schema.
 ```
 
 ### Validate a discovery profile
