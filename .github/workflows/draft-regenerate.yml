@@ -1,0 +1,75 @@
+name: Draft Regenerate
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every Monday at 09:00 UTC
+    - cron: '0 9 * * 1'
+
+jobs:
+  regenerate:
+    name: Regenerate draft schemas
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: draft
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Regenerate from spec main
+        run: npm run generate -- --branch main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet src/spec_generated.ts; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Type check
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run typecheck
+
+      - name: Lint
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run lint
+
+      - name: Format check
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run format:check
+
+      - name: Verify schema coverage
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run verify:schemas
+
+      - name: Build
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run build
+
+      - name: Validate exports
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run check:exports
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/spec_generated.ts
+          git commit -m "chore: regenerate schemas from UCP spec main"
+          git push

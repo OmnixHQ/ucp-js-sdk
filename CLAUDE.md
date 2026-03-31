@@ -132,8 +132,30 @@ Comments must explain WHY, not WHAT.
 
 ## Release Pipeline
 
+### Stable releases (main branch)
+
 1. Merge feat/fix PR → release-please opens a Release PR (bumps version + changelog)
-2. Merge Release PR → npm publish fires automatically
+2. Merge Release PR → npm publish fires automatically (`latest` tag)
+
+### Draft releases (draft branch)
+
+For building against upcoming UCP spec changes (Catalog, Order updates, etc.):
+
+```bash
+npm install @omnixhq/ucp-js-sdk          # stable (v2026-01-23 spec)
+npm install @omnixhq/ucp-js-sdk@next     # draft (spec main branch)
+```
+
+- `draft` branch regenerates schemas from UCP spec `main` (latest draft)
+- Push to `draft` → publishes as `X.Y.Z-draft.N` with npm `next` tag
+- Weekly auto-regeneration (Monday 09:00 UTC) keeps draft in sync
+- Manual trigger: Actions → Draft Regenerate → Run workflow
+- When UCP cuts a new stable release: merge `draft` → `main`, publish as stable
+
+Workflows:
+
+- `.github/workflows/draft-publish.yml` — publishes `next` on push to `draft`
+- `.github/workflows/draft-regenerate.yml` — weekly auto-regen + manual trigger
 
 **Secrets required** (set in repo Settings → Secrets → Actions):
 

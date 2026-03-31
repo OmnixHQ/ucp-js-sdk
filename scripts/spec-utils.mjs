@@ -92,9 +92,12 @@ export async function downloadSpec(ref, label) {
 
   console.log(`Downloading UCP spec (${label}) from ${SPEC_REPO}...`);
   const url = `https://api.github.com/repos/${SPEC_REPO}/tarball/${encodeURIComponent(ref)}`;
-  const resp = await fetch(url, {
-    headers: { "User-Agent": "ucp-js-sdk-tools" },
-  });
+  const headers = { "User-Agent": "ucp-js-sdk-tools" };
+  // Use GITHUB_TOKEN when available (CI) to avoid rate limits
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  }
+  const resp = await fetch(url, { headers });
   if (!resp.ok) {
     throw new Error(
       `Failed to download spec: ${resp.status} ${resp.statusText} (ref: ${ref})`
