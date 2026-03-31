@@ -15,6 +15,7 @@
     "typescript",
     "validation",
     "mcp",
+    "model-context-protocol",
     "a2a",
     "agent-to-agent",
     "discovery",
