@@ -39,7 +39,15 @@ jobs:
         run: npm run format:check
 
       - name: Verify schema coverage
-        run: npm run verify:schemas
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$REF_NAME" = "draft" ] || [ "$BASE_REF" = "draft" ]; then
+            npm run verify:schemas -- --branch main
+          else
+            npm run verify:schemas
+          fi
 
       - name: Build
         run: npm run build
