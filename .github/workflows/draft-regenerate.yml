@@ -73,3 +73,9 @@ jobs:
           git add src/spec_generated.ts
           git commit -m "chore: regenerate schemas from UCP spec main"
           git push
+
+      - name: Trigger draft publish
+        if: steps.diff.outputs.changed == 'true'
+        run: gh workflow run draft-publish.yml --ref draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
