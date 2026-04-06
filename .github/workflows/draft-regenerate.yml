@@ -55,7 +55,7 @@ jobs:
 
       - name: Verify schema coverage
         if: steps.diff.outputs.changed == 'true'
-        run: npm run verify:schemas
+        run: npm run verify:schemas -- --branch main
 
       - name: Build
         if: steps.diff.outputs.changed == 'true'
