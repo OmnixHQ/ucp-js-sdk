@@ -3,6 +3,7 @@ name: Draft Publish
 on:
   push:
     branches: [draft]
+  workflow_dispatch:
 
 concurrency:
   group: draft-publish
