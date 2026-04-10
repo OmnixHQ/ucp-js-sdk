@@ -30,12 +30,12 @@
 ## Overview
 
 The JavaScript SDK for the [Universal Commerce Protocol (UCP)](https://ucp.dev).
-Auto-generated from the UCP spec with full coverage — 100 schemas including
-checkout, orders, payments, fulfillment, discovery profiles, and all inline enums.
+Auto-generated from the UCP spec with full coverage — 134 schemas including
+checkout, cart, catalog, orders, payments, fulfillment, discovery profiles, and all inline enums.
 
 **Key features:**
 
-- 100% spec coverage — every schema, `$def`, request variant, and enum
+- 100% spec coverage — every schema, `$def`, request variant, and enum (134 exports)
 - Fully generated from the UCP JSON Schema spec — consumer aliases in `extensions.ts`
 - Runtime validation with [Zod](https://zod.dev/) — `.parse()` and `.safeParse()`
 - Extension-safe — `additionalProperties: true` schemas use `.passthrough()` to preserve extension data
@@ -50,8 +50,7 @@ npm install @omnixhq/ucp-js-sdk
 
 ### Draft builds
 
-To build against upcoming UCP spec changes (Catalog capability, Order updates, etc.),
-install the `next` tag:
+To build against upcoming UCP spec changes, install the `next` tag:
 
 ```bash
 # Draft (latest UCP spec main branch)
