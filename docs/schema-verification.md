@@ -26,13 +26,13 @@ It is run automatically in CI before every build.
 
 ## Modes
 
-### Default — pinned release (v2026-01-23)
+### Default — pinned release (v2026-04-08)
 
 ```bash
 npm run verify:schemas
 ```
 
-Downloads the `v2026-01-23` spec tarball from GitHub and checks all schemas.
+Downloads the `v2026-04-08` spec tarball from GitHub and checks all schemas.
 This is what CI runs — always reproducible, no surprises.
 
 ---

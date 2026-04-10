@@ -72,7 +72,7 @@ CI runs all of the above on every PR (`.github/workflows/ci.yml`).
 `spec_generated.ts` is auto-generated. **Never edit it by hand.**
 
 ```bash
-npm run generate                           # default release (v2026-01-23)
+npm run generate                           # default release (v2026-04-08)
 npm run generate -- --release v2026-01-24  # specific release tag
 npm run generate -- --branch main          # latest commit on a branch
 npm run generate -- --commit abc1234       # exact commit SHA
@@ -142,7 +142,7 @@ Comments must explain WHY, not WHAT.
 For building against upcoming UCP spec changes (Catalog, Order updates, etc.):
 
 ```bash
-npm install @omnixhq/ucp-js-sdk          # stable (v2026-01-23 spec)
+npm install @omnixhq/ucp-js-sdk          # stable (v2026-04-08 spec)
 npm install @omnixhq/ucp-js-sdk@next     # draft (spec main branch)
 ```
 
@@ -162,15 +162,15 @@ Workflows:
 - `NPM_TOKEN` — npm automation token for `@omnixhq` org publish
 - `GITHUB_TOKEN` — built-in, used by release-please (no manual secret needed)
 
-## Current State (as of 2026-03-30)
+## Current State (as of 2026-04-10)
 
 ### What's done
 
-- Full spec migration to UCP `v2026-01-23` with Draft 2020-12 generator
-- `scripts/generate.mjs` — downloads spec tarball + emits 100 schemas (46 top-level +
-  39 per-`$def` exports + 7 request variants from `ucp_request` annotations +
-  15 inline enum exports)
-- `scripts/verify-schemas.mjs` — drift detection (expected: 100 exports), runs in CI
+- Full spec migration to UCP `v2026-04-08` with Draft 2020-12 generator
+- `scripts/generate.mjs` — downloads spec tarball + emits 134 schemas (75 base schemas
+  generating top-level + per-`$def` exports + request variants from `ucp_request`
+  annotations + 15 inline enum exports)
+- `scripts/verify-schemas.mjs` — drift detection (expected: 134 exports), runs in CI
 - `scripts/spec-utils.mjs` — shared utilities (`--release`, `--branch`, `--commit`,
   local path modes)
 - `tsdown` dual ESM/CJS build — passes all `attw` resolution modes

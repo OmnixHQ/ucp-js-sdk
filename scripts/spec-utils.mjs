@@ -2,7 +2,7 @@
  * Shared utilities for generate.mjs and verify-schemas.mjs.
  *
  * Both tools accept the same source flags:
- *   --release <tag>    git tag, e.g. v2026-01-23  (default)
+ *   --release <tag>    git tag, e.g. v2026-04-08  (default)
  *   --branch  <name>   branch name, e.g. main
  *   --commit  <sha>    exact commit SHA
  *   <local-path>       path to an already-cloned source/ directory
@@ -17,7 +17,7 @@ import os from "node:os";
 import path from "node:path";
 
 export const SPEC_REPO = "Universal-Commerce-Protocol/ucp";
-export const DEFAULT_RELEASE = "v2026-01-23";
+export const DEFAULT_RELEASE = "v2026-04-08";
 export const REQUEST_OPERATIONS = ["create", "update", "complete"];
 
 // Explicit name overrides for files whose auto-derived names conflict.
