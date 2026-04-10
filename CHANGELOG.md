@@ -1,5 +1,36 @@
 # Changelog
 
+## [2.0.0](https://github.com/OmnixHQ/ucp-js-sdk/compare/v1.1.0...v2.0.0) (2026-04-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* UCP spec v2026-04-08 changes runtime validation behavior of existing schemas:
+    - TotalSchema now uses signed amounts (negative values allowed for discounts)
+    - OrderSchema requires currency field
+    - Order adjustment `amount` field renamed to `totals`
+    - risk_signals deprecated in favor of signals on CheckoutSchema
+    - Embedded Protocol error responses use standard error_response envelope
+
+### Features
+
+* add daily UCP spec release detection workflow ([#23](https://github.com/OmnixHQ/ucp-js-sdk/issues/23)) ([8f7ac58](https://github.com/OmnixHQ/ucp-js-sdk/commit/8f7ac582c5b39ccf64ea15931fe29ecd7247a110))
+* upgrade to UCP spec v2026-04-08 ([#31](https://github.com/OmnixHQ/ucp-js-sdk/issues/31)) ([264c2d9](https://github.com/OmnixHQ/ucp-js-sdk/commit/264c2d9ad7c82bba29edde6917f0d8467d5e2e13))
+* upgrade to UCP spec v2026-04-08 (major version bump) ([#32](https://github.com/OmnixHQ/ucp-js-sdk/issues/32)) ([5e247aa](https://github.com/OmnixHQ/ucp-js-sdk/commit/5e247aad49dcbc8ef6d59c05f77b32bcaf94e295))
+
+
+### Bug Fixes
+
+* pass --branch main to verify:schemas in draft-regenerate workflow ([#28](https://github.com/OmnixHQ/ucp-js-sdk/issues/28)) ([4f2172d](https://github.com/OmnixHQ/ucp-js-sdk/commit/4f2172dc44db3309d7d487693c47c76e915bc4f8))
+* remove unenrolled GitHub Sponsors from FUNDING.yml ([#26](https://github.com/OmnixHQ/ucp-js-sdk/issues/26)) ([304c2bc](https://github.com/OmnixHQ/ucp-js-sdk/commit/304c2bc02fa234275a4fda2f97b5014822031553))
+* trigger draft-publish after draft-regenerate pushes ([#29](https://github.com/OmnixHQ/ucp-js-sdk/issues/29)) ([ce2800b](https://github.com/OmnixHQ/ucp-js-sdk/commit/ce2800bab5f5a187b480345255beeef94fe879d0))
+
+
+### Maintenance
+
+* add community standards (CoC, security policy, issue/PR templates) ([#27](https://github.com/OmnixHQ/ucp-js-sdk/issues/27)) ([4965398](https://github.com/OmnixHQ/ucp-js-sdk/commit/496539899dc153dd340ce8718d041a9eb279ac1e))
+* add FUNDING.yml with GitHub Sponsors and Omnix link ([#25](https://github.com/OmnixHQ/ucp-js-sdk/issues/25)) ([8c13d16](https://github.com/OmnixHQ/ucp-js-sdk/commit/8c13d1661846d54b451f9ad03c9c8844c4184466))
+
 ## [1.1.0](https://github.com/OmnixHQ/ucp-js-sdk/compare/v1.0.2...v1.1.0) (2026-03-31)
 
 

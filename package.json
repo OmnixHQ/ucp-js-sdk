@@ -1,6 +1,6 @@
 {
   "name": "@omnixhq/ucp-js-sdk",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "UCP spec types and Zod schemas — runtime-validated schemas for the Universal Commerce Protocol",
   "keywords": [
     "ucp",
