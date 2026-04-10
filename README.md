@@ -146,7 +146,7 @@ Node.js 22+ and npm.
 `src/spec_generated.ts` is auto-generated from the UCP spec:
 
 ```bash
-npm run generate                          # default release (v2026-01-23)
+npm run generate                          # default release (v2026-04-08)
 npm run generate -- --release v2026-01-24 # specific release tag
 npm run generate -- --branch main         # latest commit on a branch
 npm run generate -- --commit abc1234      # exact commit SHA

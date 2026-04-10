@@ -3,8 +3,8 @@
  * Generates src/spec_generated.ts from the UCP spec.
  *
  * Usage:
- *   npm run generate                          # default release (v2026-01-23)
- *   npm run generate -- --release v2026-01-23 # specific release tag
+ *   npm run generate                          # default release (v2026-04-08)
+ *   npm run generate -- --release v2026-04-08 # specific release tag
  *   npm run generate -- --branch main         # latest commit on a branch
  *   npm run generate -- --commit abc1234      # exact commit SHA
  *   npm run generate -- /local/path/to/source # local spec clone

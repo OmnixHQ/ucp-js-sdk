@@ -5,7 +5,7 @@
  *
  * Usage:
  *   npm run verify:schemas                          # default release
- *   npm run verify:schemas -- --release v2026-01-23 # specific release tag
+ *   npm run verify:schemas -- --release v2026-04-08 # specific release tag
  *   npm run verify:schemas -- --branch main         # latest commit on branch
  *   npm run verify:schemas -- --commit abc1234      # exact commit SHA
  *   npm run verify:schemas -- /local/path/to/source # local spec clone
